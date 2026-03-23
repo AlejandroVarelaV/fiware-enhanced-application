@@ -22,6 +22,7 @@ def health_check():
         'status': 'ok',
         'timestamp': datetime.utcnow().isoformat() + 'Z',
     }
+    include_debug_info = current_app.config.get('DEBUG', False)
     
     # Check Orion connectivity
     try:
@@ -31,18 +32,27 @@ def health_check():
         if is_connected:
             status['orion'] = 'connected'
             # Include URL for debugging in non-production environments
-            if current_app.debug:
+            if include_debug_info:
                 status['orion_url'] = orion_service.base_url
             return jsonify(status), 200
         else:
             status['orion'] = 'disconnected'
             status['message'] = 'Orion Context Broker is not responding'
             # Include URL for debugging in non-production environments
-            if current_app.debug:
+            if include_debug_info:
                 status['orion_url'] = orion_service.base_url
             return jsonify(status), 503
-    
-    except Exception as e:
+
+    except OrionConnectionError as e:
         status['orion'] = 'disconnected'
         status['message'] = f'Failed to connect to Orion: {str(e)}'
         return jsonify(status), 503
+
+    except Exception as e:
+        current_app.logger.exception('Unexpected error in health_check')
+        return jsonify({
+            'status': 'error',
+            'orion': 'unknown',
+            'message': 'Internal server error',
+            'timestamp': datetime.utcnow().isoformat() + 'Z',
+        }), 500

@@ -123,7 +123,7 @@ class OrionService:
         try:
             url = urljoin(self.base_url, '/version')
             logger.debug(f"Checking Orion connection: {url}")
-            response = self.session.get(url, timeout=self.timeout)
+            response = self.session.get(url, headers=self._get_headers(), timeout=self.timeout)
             
             if response.status_code == 200:
                 logger.info("Orion connection successful")
@@ -151,23 +151,24 @@ class OrionService:
             OrionAPIError: On creation failure
             OrionConnectionError: On connection failure
         """
+        if 'id' not in entity_data:
+            raise OrionAPIError('Entity ID is required', 400)
+
         url = urljoin(self.base_url, '/v2/entities')
         
         # Prepare entity with type
         payload = {'type': entity_type, **entity_data}
         
-        logger.debug(f"Creating entity type={entity_type} with id={entity_data.get('id', 'auto-generated')}")
+        entity_id = entity_data['id']
+        logger.debug(f"Creating entity type={entity_type} with id={entity_id}")
         
         try:
             response = self.session.post(url, json=payload, headers=self._get_headers(), timeout=self.timeout)
             self._handle_response(response, f"create_entity type={entity_type}")
-            
-            # POST to /v2/entities returns 201 Created with no body, extract ID from request
-            entity_id = entity_data.get('id')
             logger.info(f"Entity created: type={entity_type}, id={entity_id}")
-            
-            # Return created entity (with type)
-            return {'id': entity_id, 'type': entity_type, **{k: v for k, v in entity_data.items() if k not in ['id', 'type']}}
+
+            # POST /v2/entities returns no entity payload; fetch canonical entity from Orion.
+            return self.get_entity(entity_id)
         
         except (OrionAPIError, OrionConnectionError):
             raise
