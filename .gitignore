@@ -1,4 +1,32 @@
+# Python virtual environments
 .venv/
+venv/
+backend/venv/
+env/
+
+# Python cache and bytecode
 __pycache__/
 **/__pycache__/
 **pycache**
+*.pyc
+*.pyo
+*.pyd
+
+# Environment files (keep .env.example)
+.env
+.env.local
+backend/.env
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+backend/*.log
+
+# Dependencies
+backend/node_modules/
