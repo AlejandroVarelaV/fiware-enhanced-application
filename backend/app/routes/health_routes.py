@@ -30,12 +30,16 @@ def health_check():
         
         if is_connected:
             status['orion'] = 'connected'
-            status['orion_url'] = orion_service.base_url
+            # Include URL for debugging in non-production environments
+            if current_app.debug:
+                status['orion_url'] = orion_service.base_url
             return jsonify(status), 200
         else:
             status['orion'] = 'disconnected'
-            status['orion_url'] = orion_service.base_url
             status['message'] = 'Orion Context Broker is not responding'
+            # Include URL for debugging in non-production environments
+            if current_app.debug:
+                status['orion_url'] = orion_service.base_url
             return jsonify(status), 503
     
     except Exception as e:

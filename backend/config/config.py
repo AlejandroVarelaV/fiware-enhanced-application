@@ -47,7 +47,8 @@ class TestingConfig(Config):
     
     TESTING = True
     DEBUG = True
-    ORION_URL = 'http://localhost:1026'  # Mock or test Orion
+    # Note: ORION_URL inherited from Config class, can be overridden via ORION_URL env var
+    # Default for testing: http://localhost:1026
 
 
 class ProductionConfig(Config):
