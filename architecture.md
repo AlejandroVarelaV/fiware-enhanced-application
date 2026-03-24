@@ -56,6 +56,50 @@ Responsibilities:
 - Emit real-time events to browser clients through Flask-SocketIO.
 - Enforce server-side validation and consistent error handling.
 
+### Backend Architecture (Issue 1A Implementation)
+The backend is structured in logical layers:
+
+**app/__init__.py** (Flask Application Factory):
+- `create_app(config_name)` function initializes Flask with configuration
+- Global error handlers for application exceptions
+- CORS configuration for frontend-backend communication
+- OrionService instantiation and app context binding
+- Blueprint registration for routes
+
+**config/config.py** (Configuration System):
+- Environment-driven configuration (no hardcoded values)
+- Multi-environment support: Config (base), DevelopmentConfig, ProductionConfig, TestingConfig
+- Settings: FLASK_PORT, LOG_LEVEL, CORS_ORIGINS, ORION_URL, ORION_FIWARE_SERVICE, ORION_FIWARE_SERVICEPATH, HEALTH_CHECK_TIMEOUT
+
+**app/services/orion_service.py** (Orion NGSIv2 Client):
+- Low-level HTTP client for Orion communication
+- Standardized NGSIv2 headers injected into all requests
+- CRUD operations: create_entity, get_entity, list_entities, update_entity_attrs, delete_entity
+- Specialized operations: check_connection(), patch_entity_increment()
+- Robust error handling with custom exceptions for HTTP errors
+- Request/response logging for debugging
+
+**app/routes/** (HTTP Endpoints):
+- health_routes.py: Health check endpoint (GET /api/health) for monitoring
+- Blueprint-based modular design for future endpoint expansion
+
+**app/models/exceptions.py** (Error Hierarchy):
+- ApplicationError (base exception)
+- OrionConnectionError: Network or service unavailability
+- OrionEntityNotFoundError: HTTP 404 from Orion
+- OrionAPIError: HTTP 400 or 500 errors with context
+- ValidationError: Input validation failures
+
+**app/utils/logger.py** (Logging):
+- setup_logging(app): Configure Flask logging pipeline
+- get_logger(name): Return configured logger instance
+- Structured logging with configurable severity levels
+
+**run.py** (Entry Point):
+- Application initialization and development server launch
+- Environment variable loading from .env file
+- Port/debug mode configuration from environment
+
 ## 3.3 Orion Context Broker (NGSIv2)
 Responsibilities:
 - Manage entities and attributes for Store, Employee, Product, Shelf, InventoryItem.
