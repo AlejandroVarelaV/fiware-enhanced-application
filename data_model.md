@@ -37,6 +37,17 @@ Operational/base attributes needed by required views:
 - address: StructuredValue (postal address)
 - location: geo:json Point (latitude/longitude)
 
+Issue 1B backend CRUD fields for Store:
+- name
+- image
+- address
+- location
+- url
+- telephone
+- countryCode
+- capacity
+- description
+
 ## 2.2 Employee
 
 ### Purpose
@@ -75,6 +86,24 @@ Operational/base attributes needed by required views and subscriptions:
 - image: Text (image URL/path)
 - size: Text
 - price: Number
+
+Issue 1B backend CRUD fields for Product:
+- name
+- image
+- size
+- price
+- color
+
+## 2.6 Issue 1B Validation and ID Policy (Implemented)
+
+For Product and Store in Issue 1B:
+- Validation scope is minimal: required field presence only.
+- No advanced validation is applied in this phase (format, enums, relationships are deferred).
+
+Entity ID strategy in create operations:
+- Use payload `id` when provided.
+- Otherwise generate a UUID.
+- The resulting `id` is included in the NGSI entity sent to Orion.
 
 ## 2.4 Shelf
 
@@ -246,9 +275,9 @@ Initial load script must include at least:
 
 This initialization baseline ensures all mandatory UI views and grouping behavior.
 
-## 10. Implementation Status - Issue 1A Backend Foundation
+## 10. Implementation Status
 
-**Backend Preparation for Data Model (Issue 1A)**
+### 10.1 Backend Preparation for Data Model (Issue 1A)
 
 Issue 1A establishes the foundational backend infrastructure required to support the entities defined in this data model:
 
@@ -266,4 +295,16 @@ Issue 1A establishes the foundational backend infrastructure required to support
 - **Subscriptions**: Registration of Orion subscriptions for price changes and low stock (Issue 1C and later)
 - **External Context Providers**: Registration and integration of temperature/humidity/tweets providers (Issue 1C and later)
 
-Issue 1A provides the low-level infrastructure only. Issue 1B will implement basic Product and Store CRUD with minimal validation. Issue 1C will add full validation, relationships, and complex workflows.rs can be demonstrated.
+### 10.2 Product and Store CRUD (Issue 1B)
+
+Issue 1B extends the implemented backend state with Product and Store CRUD support:
+
+- Product entity CRUD service and API routes are implemented
+- Store entity CRUD service and API routes are implemented
+- Product and Store required-field presence checks are implemented
+- Product and Store create operations apply the ID policy (payload id or UUID fallback)
+
+Still pending for later issues:
+- Employee, Shelf, InventoryItem implementation
+- Advanced field validation and relationship validation
+- Subscription and notification workflows
