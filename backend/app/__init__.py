@@ -11,13 +11,13 @@ import logging
 
 from config import get_config
 from app.utils.logger import setup_logging, get_logger
-from app.services import OrionService
+from app.services import OrionService, ProductService, StoreService
 from app.models.exceptions import (
     ApplicationError,
     OrionConnectionError,
     OrionEntityNotFoundError,
 )
-from app.routes import health_bp
+from app.routes import health_bp, product_bp, store_bp
 
 
 logger = get_logger(__name__)
@@ -58,9 +58,16 @@ def create_app(config_name=None):
     )
     app.orion_service = orion_service
     logger.info(f"OrionService initialized: {app.config.ORION_URL}")
+
+    # Initialize application services
+    app.product_service = ProductService(orion_service)
+    app.store_service = StoreService(orion_service)
+    logger.debug("ProductService and StoreService initialized")
     
     # Register blueprints
     app.register_blueprint(health_bp)
+    app.register_blueprint(product_bp)
+    app.register_blueprint(store_bp)
     logger.debug("Health check blueprint registered")
     
     # Register error handlers
