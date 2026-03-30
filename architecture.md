@@ -56,7 +56,7 @@ Responsibilities:
 - Emit real-time events to browser clients through Flask-SocketIO.
 - Enforce server-side validation and consistent error handling.
 
-### Backend Architecture (Issue 1A + Issue 1B Implementation)
+### Backend Architecture (Issue 1A + Issue 1B + Issue 1C Implementation)
 The backend is structured in logical layers:
 
 **app/__init__.py** (Flask Application Factory):
@@ -91,17 +91,50 @@ The backend is structured in logical layers:
 - Maps Store payloads to/from NGSIv2 format
 - Delegates Orion communication to OrionService
 
+**app/services/employee_service.py** (Employee Service Layer):
+- Handles Employee CRUD operations
+- Validates required fields, basic types, and simple formats (email, dateOfContract)
+- Validates skills enum values
+- Validates refStore existence in Orion
+- Applies ID strategy (payload id, otherwise UUID fallback)
+
+**app/services/shelf_service.py** (Shelf Service Layer):
+- Handles Shelf CRUD operations
+- Validates required fields and basic types
+- Validates numeric constraint (maxCapacity > 0)
+- Validates optional location shape (geo point object)
+- Validates refStore existence in Orion
+- Applies ID strategy (payload id, otherwise UUID fallback)
+
+**app/services/inventory_item_service.py** (InventoryItem Service Layer):
+- Handles InventoryItem CRUD operations
+- Validates required fields and basic types
+- Validates numeric constraints (shelfCount >= 0, stockCount >= 0)
+- Validates refStore, refShelf, and refProduct existence in Orion
+- Applies ID strategy (payload id, otherwise UUID fallback)
+
 **app/routes/** (HTTP Endpoints):
 - health_routes.py: Health check endpoint (GET /api/health) for monitoring
 - product_routes.py: Product CRUD endpoints (/api/products, /api/products/<id>)
 - store_routes.py: Store CRUD endpoints (/api/stores, /api/stores/<id>)
+- employee_routes.py: Employee CRUD endpoints (/api/employees, /api/employees/<id>)
+- shelf_routes.py: Shelf CRUD endpoints (/api/shelves, /api/shelves/<id>)
+- inventory_item_routes.py: InventoryItem CRUD endpoints (/api/inventory-items, /api/inventory-items/<id>)
 - Blueprint-based modular design for future endpoint expansion
 
-Issue 1B request processing flow:
+Issue 1B/1C request processing flow:
 - Route -> Service -> OrionService
 - Routes handle request parsing and response formatting
 - Services handle validation, ID handling, mapping, and orchestration
 - OrionService remains low-level only (HTTP/NGSIv2 transport and broker error handling)
+
+Validation scope in implemented backend services:
+- Required fields
+- Basic type checks
+- Simple format checks (email, datetime)
+- Numeric constraints for capacity/count fields
+- Relationship checks limited to referenced entity existence in Orion
+- No deep cross-entity consistency rules in Issue 1C
 
 **app/models/exceptions.py** (Error Hierarchy):
 - ApplicationError (base exception)
@@ -157,6 +190,13 @@ Examples:
 - Entity CRUD for Product, Store, Employee, Shelf, InventoryItem.
 - Buy-one-unit inventory patch:
   PATCH /v2/entities/<inventoryitem_id>/attrs with increment semantics.
+
+Implemented backend endpoint matrix:
+- /api/products and /api/products/<id>
+- /api/stores and /api/stores/<id>
+- /api/employees and /api/employees/<id>
+- /api/shelves and /api/shelves/<id>
+- /api/inventory-items and /api/inventory-items/<id>
 
 ## 4.2 WebSocket Communication (Socket.IO)
 Primary channel:

@@ -303,6 +303,33 @@ Current implementation coverage:
 - Product create, list, retrieve, update, and delete workflows are available
 - Store create, list, retrieve, update, and delete workflows are available
 
+### 8.3 Completed in Issue 1C: Employee, Shelf, and InventoryItem CRUD
+
+Issue 1C extends backend CRUD coverage with Employee, Shelf, and InventoryItem.
+
+Available API endpoints:
+- Employee collection and create: /api/employees
+- Employee item operations: /api/employees/<id>
+- Shelf collection and create: /api/shelves
+- Shelf item operations: /api/shelves/<id>
+- InventoryItem collection and create: /api/inventory-items
+- InventoryItem item operations: /api/inventory-items/<id>
+
+Current implementation coverage:
+- Employee create, list, retrieve, update, and delete workflows are available
+- Shelf create, list, retrieve, update, and delete workflows are available
+- InventoryItem create, list, retrieve, update, and delete workflows are available
+
+Validation scope implemented in Issue 1C:
+- Required fields validation
+- Basic type validation (string, integer, list as needed)
+- Simple format checks (email, ISO 8601 datetime)
+- Numeric constraints (maxCapacity > 0, shelfCount >= 0, stockCount >= 0)
+- Relationship validation limited to existence of referenced entities in Orion (refStore, refShelf, refProduct)
+
+Entity ID strategy:
+- Create operations use payload id when provided
+- Otherwise a UUID is generated as fallback
+
 Pending for later issues:
-- Employee, Shelf, and InventoryItem implementation
 - Subscription and real-time notification features

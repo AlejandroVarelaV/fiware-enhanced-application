@@ -168,6 +168,10 @@ Additional contextual relation used in data access:
 7. In Product detail view, adding InventoryItem is limited to Shelves in the selected Store that do not already contain that Product.
 8. In Store detail view, adding InventoryItem to Shelf is limited to Products not already present in that Shelf.
 
+Issue 1C backend enforcement scope for constraints 4-6:
+- Relationship validation checks only that referenced entities exist in Orion.
+- Cross-entity consistency rules are not enforced in this issue.
+
 ## 5. External Context Attribution Rules
 
 Store attributes temperature, relativeHumidity, and tweets are externally provided context attributes:
@@ -305,6 +309,32 @@ Issue 1B extends the implemented backend state with Product and Store CRUD suppo
 - Product and Store create operations apply the ID policy (payload id or UUID fallback)
 
 Still pending for later issues:
-- Employee, Shelf, InventoryItem implementation
-- Advanced field validation and relationship validation
+- Subscription and notification workflows
+
+
+### 10.3 Employee, Shelf, and InventoryItem CRUD (Issue 1C)
+
+Issue 1C completes backend CRUD support for the remaining entities:
+
+- Employee entity CRUD service and API routes are implemented
+- Shelf entity CRUD service and API routes are implemented
+- InventoryItem entity CRUD service and API routes are implemented
+
+Implemented API endpoints:
+- /api/employees and /api/employees/<id>
+- /api/shelves and /api/shelves/<id>
+- /api/inventory-items and /api/inventory-items/<id>
+
+Implemented validation scope:
+- Required fields validation
+- Basic type validation (string, integer, list as needed)
+- Simple format checks (email, ISO 8601 datetime)
+- Numeric constraints (maxCapacity > 0, shelfCount >= 0, stockCount >= 0)
+- Relationship validation limited to referenced entity existence in Orion
+
+ID strategy applied to create operations:
+- Use payload id when provided
+- Otherwise generate UUID fallback
+
+Still pending for later issues:
 - Subscription and notification workflows
