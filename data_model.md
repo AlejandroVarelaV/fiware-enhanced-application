@@ -127,8 +127,8 @@ Derived/visual value used in UI:
 Represents product inventory counts at Store/Shelf granularity.
 
 ### Attributes
-- shelfCount: Integer (units for Product on a specific Shelf)
-- stockCount: Integer (total units for Product in the Store context represented by this row)
+- shelfCount: Integer (units of the Product in one specific Shelf)
+- stockCount: Integer (total units of the same Product in the Store)
 
 Relationship attributes:
 - refProduct: Relationship -> Product
@@ -136,7 +136,7 @@ Relationship attributes:
 - refStore: Relationship -> Store
 
 Operational rule:
-- Buy-one-unit operation decrements shelfCount and stockCount by 1 using Orion patch increment semantics.
+- Buy-one-unit operation decrements shelfCount and stockCount by 1 by updating the InventoryItem values.
 
 ## 3. Relationship Model
 
@@ -281,60 +281,19 @@ This initialization baseline ensures all mandatory UI views and grouping behavio
 
 ## 10. Implementation Status
 
-### 10.1 Backend Preparation for Data Model (Issue 1A)
+### 10.1 Implemented
 
-Issue 1A establishes the foundational backend infrastructure required to support the entities defined in this data model:
+- All five entities are implemented in backend CRUD routes and services:
+  - Product
+  - Store
+  - Employee
+  - Shelf
+  - InventoryItem
+- Validation is implemented for required fields, formats, numeric constraints, and reference existence.
+- Orion subscriptions and backend notification forwarding are implemented.
+- Frontend renders Store detail grouped by Shelf and InventoryItem using this model.
+- Purchase flow updates `InventoryItem` by decrementing `shelfCount` and `stockCount` from backend entity values.
 
-- **OrionService** is ready to perform CRUD operations on Store, Employee, Product, Shelf, and InventoryItem entities
-- All entities can be queried, created, updated, and deleted via NGSIv2 /v2/entities endpoints
-- Proper NGSIv2 headers (Fiware-Service, Fiware-ServicePath) are injected into all requests
-- Error handling and logging are in place for Orion communication failures
+### 10.2 Pending
 
-**What is NOT yet implemented**:
-
-- **Entity Services**: Business logic services for Product, Store, Employee, Shelf, InventoryItem (Issue 1B and 1C)
-- **HTTP Endpoints**: REST routes for frontend to perform CRUD (Issue 1B and 1C)
-- **Validation**: Input validation for entity attributes per business constraints (Issue 1C)
-- **Relationships**: Validation and enforcement of mandatory relationships (Issue 1C)
-- **Subscriptions**: Registration of Orion subscriptions for price changes and low stock (Issue 1C and later)
-- **External Context Providers**: Registration and integration of temperature/humidity/tweets providers (Issue 1C and later)
-
-### 10.2 Product and Store CRUD (Issue 1B)
-
-Issue 1B extends the implemented backend state with Product and Store CRUD support:
-
-- Product entity CRUD service and API routes are implemented
-- Store entity CRUD service and API routes are implemented
-- Product and Store required-field presence checks are implemented
-- Product and Store create operations apply the ID policy (payload id or UUID fallback)
-
-Still pending for later issues:
-- Subscription and notification workflows
-
-
-### 10.3 Employee, Shelf, and InventoryItem CRUD (Issue 1C)
-
-Issue 1C completes backend CRUD support for the remaining entities:
-
-- Employee entity CRUD service and API routes are implemented
-- Shelf entity CRUD service and API routes are implemented
-- InventoryItem entity CRUD service and API routes are implemented
-
-Implemented API endpoints:
-- /api/employees and /api/employees/<id>
-- /api/shelves and /api/shelves/<id>
-- /api/inventory-items and /api/inventory-items/<id>
-
-Implemented validation scope:
-- Required fields validation
-- Basic type validation (string, integer, list as needed)
-- Simple format checks (email, ISO 8601 datetime)
-- Numeric constraints (maxCapacity > 0, shelfCount >= 0, stockCount >= 0)
-- Relationship validation limited to referenced entity existence in Orion
-
-ID strategy applied to create operations:
-- Use payload id when provided
-- Otherwise generate UUID fallback
-
-Still pending for later issues:
-- Subscription and notification workflows
+- Frontend real-time notification consumption and advanced visualization layers do not alter this entity model and remain outside current implemented UI scope.
