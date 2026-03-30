@@ -51,7 +51,7 @@ td {
   text-align: left;
 }
 
-img.product-image {
+img.entity-image {
   width: 40px;
   height: 40px;
   object-fit: cover;
