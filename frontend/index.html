@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Retail UI</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Smart Retail Dashboard</h1>
+    <nav class="main-nav" aria-label="Main navigation">
+      <button type="button" class="nav-link active" data-view="home-view">Home</button>
+      <button type="button" class="nav-link" data-view="products-view">Products</button>
+      <button type="button" class="nav-link" data-view="stores-view">Stores</button>
+      <button type="button" class="nav-link" data-view="employees-view">Employees</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="home-view" class="view">
+      <h2>Home</h2>
+      <p>Welcome to the Smart Retail frontend.</p>
+      <p>Use the navigation bar to manage entities.</p>
+    </section>
+
+    <section id="products-view" class="view hidden">
+      <h2>Products</h2>
+
+      <div class="actions-row">
+        <button id="create-product-btn" type="button">Create Product</button>
+        <button id="refresh-products-btn" type="button">Refresh</button>
+      </div>
+
+      <p id="products-feedback" class="feedback" role="status" aria-live="polite"></p>
+
+      <table id="products-table">
+        <thead>
+          <tr>
+            <th>Image</th>
+            <th>Name</th>
+            <th>Color</th>
+            <th>Size</th>
+            <th>Price</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="products-table-body">
+          <tr>
+            <td colspan="6">No products loaded.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <section id="product-form-section" class="hidden">
+        <h3 id="product-form-title">Create Product</h3>
+        <form id="product-form">
+          <input type="hidden" id="product-id" name="id">
+
+          <label for="product-image">Image URL</label>
+          <input id="product-image" name="image" type="text" required>
+
+          <label for="product-name">Name</label>
+          <input id="product-name" name="name" type="text" required>
+
+          <label for="product-color">Color (hex)</label>
+          <input id="product-color" name="color" type="text" placeholder="#FFFFFF" required>
+
+          <label for="product-size">Size</label>
+          <input id="product-size" name="size" type="text" required>
+
+          <label for="product-price">Price</label>
+          <input id="product-price" name="price" type="number" step="0.01" min="0" required>
+
+          <div class="actions-row">
+            <button type="submit" id="save-product-btn">Save</button>
+            <button type="button" id="cancel-product-btn">Cancel</button>
+          </div>
+        </form>
+      </section>
+    </section>
+
+    <section id="stores-view" class="view hidden">
+      <h2>Stores</h2>
+      <p>Stores UI will be implemented in a next issue.</p>
+    </section>
+
+    <section id="employees-view" class="view hidden">
+      <h2>Employees</h2>
+      <p>Employees UI will be implemented in a next issue.</p>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
