@@ -257,9 +257,9 @@ A release candidate is acceptable when:
 - Required visual, animation, iconography, i18n, and theme features are present.
 - Documentation and delivery constraints are satisfied (README, requirements.txt, archive policy, GitHub Flow evidence).
 
-## 8. Implementation Status - Issue 1A (Backend Bootstrap)
+## 8. Implementation Status
 
-**Completed in Issue 1A: Flask Backend Foundation**
+### 8.1 Completed in Issue 1A: Flask Backend Foundation
 
 The backend foundation has been successfully implemented with the following components:
 
@@ -289,4 +289,20 @@ The backend foundation has been successfully implemented with the following comp
 - Backend does NOT yet implement subscription registration or notification callbacks
 - Frontend URL routes and UI remain unchanged (Issue 1B and later)
 
-**Next Issue (1B)**: Implement Product and Store CRUD endpoints with minimal validation
+### 8.2 Completed in Issue 1B: Product and Store CRUD
+
+Issue 1B is now implemented for the backend Product and Store scope.
+
+Available API endpoints:
+- Product collection and create: /api/products
+- Product item operations: /api/products/<id>
+- Store collection and create: /api/stores
+- Store item operations: /api/stores/<id>
+
+Current implementation coverage:
+- Product create, list, retrieve, update, and delete workflows are available
+- Store create, list, retrieve, update, and delete workflows are available
+
+Pending for later issues:
+- Employee, Shelf, and InventoryItem implementation
+- Subscription and real-time notification features

@@ -56,7 +56,7 @@ Responsibilities:
 - Emit real-time events to browser clients through Flask-SocketIO.
 - Enforce server-side validation and consistent error handling.
 
-### Backend Architecture (Issue 1A Implementation)
+### Backend Architecture (Issue 1A + Issue 1B Implementation)
 The backend is structured in logical layers:
 
 **app/__init__.py** (Flask Application Factory):
@@ -79,9 +79,29 @@ The backend is structured in logical layers:
 - Robust error handling with custom exceptions for HTTP errors
 - Request/response logging for debugging
 
+**app/services/product_service.py** (Product Service Layer):
+- Handles Product required-field validation (presence only)
+- Applies Product ID strategy (payload id, otherwise UUID fallback)
+- Maps Product payloads to/from NGSIv2 format
+- Delegates Orion communication to OrionService
+
+**app/services/store_service.py** (Store Service Layer):
+- Handles Store required-field validation (presence only)
+- Applies Store ID strategy (payload id, otherwise UUID fallback)
+- Maps Store payloads to/from NGSIv2 format
+- Delegates Orion communication to OrionService
+
 **app/routes/** (HTTP Endpoints):
 - health_routes.py: Health check endpoint (GET /api/health) for monitoring
+- product_routes.py: Product CRUD endpoints (/api/products, /api/products/<id>)
+- store_routes.py: Store CRUD endpoints (/api/stores, /api/stores/<id>)
 - Blueprint-based modular design for future endpoint expansion
+
+Issue 1B request processing flow:
+- Route -> Service -> OrionService
+- Routes handle request parsing and response formatting
+- Services handle validation, ID handling, mapping, and orchestration
+- OrionService remains low-level only (HTTP/NGSIv2 transport and broker error handling)
 
 **app/models/exceptions.py** (Error Hierarchy):
 - ApplicationError (base exception)
