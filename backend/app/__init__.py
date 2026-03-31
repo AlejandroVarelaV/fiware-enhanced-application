@@ -46,18 +46,19 @@ def create_app(config_name=None):
     logger.info(f"Creating Flask app with config: {config.__class__.__name__}")
     
     # Enable CORS
-    CORS(app, origins=app.config.CORS_ORIGINS)
-    logger.debug(f"CORS enabled for origins: {app.config.CORS_ORIGINS}")
+    cors_origins = app.config.get('CORS_ORIGINS', '*')
+    CORS(app, origins=cors_origins)
+    logger.debug(f"CORS enabled for origins: {cors_origins}")
     
     # Initialize OrionService
     orion_service = OrionService(
-        base_url=app.config.ORION_URL,
-        fiware_service=app.config.ORION_FIWARE_SERVICE,
-        fiware_servicepath=app.config.ORION_FIWARE_SERVICEPATH,
-        timeout=app.config.HEALTH_CHECK_TIMEOUT,
+        base_url=app.config.get('ORION_URL', 'http://localhost:1026'),
+        fiware_service=app.config.get('ORION_FIWARE_SERVICE', 'smart-retail'),
+        fiware_servicepath=app.config.get('ORION_FIWARE_SERVICEPATH', '/'),
+        timeout=app.config.get('HEALTH_CHECK_TIMEOUT', 2),
     )
     app.orion_service = orion_service
-    logger.info(f"OrionService initialized: {app.config.ORION_URL}")
+    logger.info(f"OrionService initialized: {app.config.get('ORION_URL', 'http://localhost:1026')}")
 
     # Initialize application services
     app.product_service = ProductService(orion_service)
