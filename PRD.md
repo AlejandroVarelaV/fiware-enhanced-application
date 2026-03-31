@@ -259,50 +259,44 @@ A release candidate is acceptable when:
 
 ## 8. Implementation Status
 
-### 8.1 Completed in Issue 1A: Flask Backend Foundation
+### 8.1 Implemented Features
 
-The backend foundation has been successfully implemented with the following components:
+Backend (Issues 1C, 2A, 2B):
+- CRUD endpoints implemented for Product, Store, Employee, Shelf, and InventoryItem.
+- Validation implemented in service layer (required fields, formats, numeric constraints, reference existence checks).
+- Orion integration implemented through OrionService.
+- SubscriptionService implemented and executed at startup to register Orion subscriptions (price change and low stock).
+- Notification callback endpoint implemented at `/api/notifications`.
+- Flask-SocketIO integration implemented in backend and notification forwarding service emits real-time events.
 
-### Backend Infrastructure
-- **Flask Application Factory**: Multi-environment configuration (Development, Production, Testing)
-- **Environment Configuration**: All settings managed via environment variables (no hardcoding)
-- **Logging Utilities**: Structured logging with configurable log levels
-- **Error Handling**: Custom exception hierarchy (OrionConnectionError, OrionEntityNotFoundError, OrionAPIError, ValidationError)
+Frontend (Issues 2C, 2D + Store detail completion):
+- Base frontend implemented as vanilla HTML/CSS/JavaScript (no frameworks).
+- CRUD views implemented for Products, Stores, and Employees.
+- Store detail implemented with grouped rendering: Store -> Shelves -> InventoryItems.
+- Store detail shows Products inside each Shelf with attributes:
+   - image
+   - name
+   - price
+   - size
+   - color
+- Store detail shows both counts in each InventoryItem row:
+   - shelfCount
+   - stockCount
+- Shelf capacity progress bar implemented in Store detail.
+- Store detail actions implemented:
+   - Add Shelf
+   - Add InventoryItem
+   - Buy product
 
-### Orion Integration Layer
-- **OrionService**: Low-level NGSIv2 HTTP client handling all Orion communication
-  - CRUD operations: create_entity, get_entity, list_entities, update_entity_attrs, delete_entity
-  - Connection verification: check_connection() via GET /v2/version
-  - Atomic operations: patch_entity_increment() for $inc semantics
-  - Proper NGSIv2 headers (Content-Type, Accept, Fiware-Service, Fiware-ServicePath)
-  - Robust error handling with specific exceptions for HTTP 404/400/500
+Purchase flow status:
+- Buy product action uses `PATCH /api/inventory-items/<id>`.
+- PATCH payload decrements both `shelfCount` and `stockCount` by 1.
+- Values used in PATCH are taken directly from backend InventoryItem fields.
+- After successful PATCH, Store detail view is refreshed using existing fetch/render flow.
 
-### Monitoring and Health
-- **Health Endpoint (GET /api/health)**: Verifies backend and Orion connectivity
-  - Returns JSON structure with status, timestamp, Orion connection status
-  - Conditional debug information (debug mode only)
-  - Returns 200 on success, 503 if Orion unreachable
+### 8.2 Pending Features
 
-### What is NOT included in Issue 1A
-- Backend does NOT yet implement entity CRUD endpoints for Product, Store, Employee, Shelf, InventoryItem
-- Backend does NOT yet implement validations for entity attributes
-- Backend does NOT yet implement subscription registration or notification callbacks
-- Frontend URL routes and UI remain unchanged (Issue 1B and later)
-
-### 8.2 Completed in Issue 1B: Product and Store CRUD
-
-Issue 1B is now implemented for the backend Product and Store scope.
-
-Available API endpoints:
-- Product collection and create: /api/products
-- Product item operations: /api/products/<id>
-- Store collection and create: /api/stores
-- Store item operations: /api/stores/<id>
-
-Current implementation coverage:
-- Product create, list, retrieve, update, and delete workflows are available
-- Store create, list, retrieve, update, and delete workflows are available
-
-Pending for later issues:
-- Employee, Shelf, and InventoryItem implementation
-- Subscription and real-time notification features
+- Frontend Socket.IO client integration and in-UI real-time notification rendering.
+- Store map view (Leaflet) and store-detail map section.
+- Three.js immersive store visualization.
+- Advanced UI features requested by assignment (full iconography set, bilingual i18n toggle, dark/light mode polish, advanced visuals).

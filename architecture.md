@@ -2,20 +2,20 @@
 
 ## 1. Architectural Overview
 
-The system follows a container-based, event-driven architecture centered on FIWARE Orion Context Broker (NGSIv2), with Flask as an application backend and a browser-based frontend built with HTML/CSS/JavaScript.
+The system follows a container-based architecture centered on FIWARE Orion Context Broker (NGSIv2), with Flask as backend and a browser frontend built with HTML/CSS/JavaScript.
 
 At a high level:
-- Frontend handles rendering, user interaction, maps, and immersive 3D visualization.
-- Backend orchestrates NGSIv2 operations, startup registrations/subscriptions, validation, and notification fan-out.
+- Frontend handles rendering and user interaction using vanilla JavaScript and direct DOM updates.
+- Backend orchestrates NGSIv2 operations, startup subscriptions, validation, and notification fan-out.
 - Orion is the source of truth for context entities and triggers notifications.
-- External context providers supply selected Store attributes (temperature, relativeHumidity, tweets).
+- External context providers supply selected Store attributes (temperature, relativeHumidity, tweets) through Orion.
 - Docker Compose provisions and connects all runtime services.
 
 ## 2. High-Level Architecture Diagram (Textual + Mermaid)
 
 ```mermaid
 flowchart LR
-    U[Browser UI HTML/CSS/JS\nLeaflet + Three.js + Socket.IO client] <-->|HTTP/REST| B[Flask Backend\nFlask-SocketIO]
+    U[Browser UI HTML/CSS/JS\nVanilla JS + DOM rendering] <-->|HTTP/REST| B[Flask Backend\nFlask-SocketIO]
     B <-->|NGSIv2 REST| O[Orion Context Broker]
     O <-->|Context Queries| E[External Context Providers\nTutorial Container]
     O -->|Subscription Notification\nHTTP callback host.docker.internal| B
@@ -33,17 +33,15 @@ Interpretation:
 
 ## 3.1 Frontend (HTML/CSS/JavaScript)
 Responsibilities:
-- Render views: Home, Products, Stores, Employees, Store detail, Stores Map.
-- Render entity tables, grouped inventory tables, and action links.
-- Provide bilingual UI (English/Spanish) and Dark/Light mode toggle.
-- Validate forms using HTML and JS validation rules.
-- Render Store and global maps via Leaflet.
-- Render immersive Store walkthrough via Three.js.
-- Receive Socket.IO events and update existing DOM elements in all affected views.
+- Render views: Home, Products, Stores, and Employees.
+- Render entity tables and Store detail grouped inventory view.
+- Execute CRUD actions through fetch-based REST calls to backend endpoints.
+- Render Store detail using DOM logic with hierarchy Store -> Shelves -> InventoryItems.
+- Execute Store detail actions (add Shelf, add InventoryItem, buy product).
 
 Key design constraints:
-- Prefer CSS over JavaScript whenever both can implement a visual behavior.
-- Prefer DOM updates over dynamic HTML generation where feasible.
+- No frontend framework.
+- Prefer simple DOM updates and small rendering helpers.
 
 ## 3.2 Backend (Flask + Flask-SocketIO)
 Responsibilities:
@@ -56,7 +54,7 @@ Responsibilities:
 - Emit real-time events to browser clients through Flask-SocketIO.
 - Enforce server-side validation and consistent error handling.
 
-### Backend Architecture (Issue 1A + Issue 1B Implementation)
+### Backend Architecture (Issue 1A + Issue 1B + Issue 1C Implementation)
 The backend is structured in logical layers:
 
 **app/__init__.py** (Flask Application Factory):
@@ -91,17 +89,59 @@ The backend is structured in logical layers:
 - Maps Store payloads to/from NGSIv2 format
 - Delegates Orion communication to OrionService
 
+**app/services/employee_service.py** (Employee Service Layer):
+- Handles Employee CRUD operations
+- Validates required fields, basic types, and simple formats (email, dateOfContract)
+- Validates skills enum values
+- Validates refStore existence in Orion
+- Applies ID strategy (payload id, otherwise UUID fallback)
+
+**app/services/shelf_service.py** (Shelf Service Layer):
+- Handles Shelf CRUD operations
+- Validates required fields and basic types
+- Validates numeric constraint (maxCapacity > 0)
+- Validates optional location shape (geo point object)
+- Validates refStore existence in Orion
+- Applies ID strategy (payload id, otherwise UUID fallback)
+
+**app/services/inventory_item_service.py** (InventoryItem Service Layer):
+- Handles InventoryItem CRUD operations
+- Validates required fields and basic types
+- Validates numeric constraints (shelfCount >= 0, stockCount >= 0)
+- Validates refStore, refShelf, and refProduct existence in Orion
+- Applies ID strategy (payload id, otherwise UUID fallback)
+
+**app/services/subscription_service.py** (Subscription Service):
+- Builds Orion subscription payloads for Product price changes and InventoryItem low stock.
+- Registers subscriptions at startup while avoiding duplicate creation.
+
+**app/services/notification_event_service.py** (Notification Event Service):
+- Parses Orion notification payloads.
+- Emits Socket.IO events for supported event types.
+
 **app/routes/** (HTTP Endpoints):
 - health_routes.py: Health check endpoint (GET /api/health) for monitoring
 - product_routes.py: Product CRUD endpoints (/api/products, /api/products/<id>)
 - store_routes.py: Store CRUD endpoints (/api/stores, /api/stores/<id>)
+- employee_routes.py: Employee CRUD endpoints (/api/employees, /api/employees/<id>)
+- shelf_routes.py: Shelf CRUD endpoints (/api/shelves, /api/shelves/<id>)
+- inventory_item_routes.py: InventoryItem CRUD endpoints (/api/inventory-items, /api/inventory-items/<id>)
+- notification_routes.py: Orion callback endpoint (/api/notifications)
 - Blueprint-based modular design for future endpoint expansion
 
-Issue 1B request processing flow:
+Issue 1B/1C request processing flow:
 - Route -> Service -> OrionService
 - Routes handle request parsing and response formatting
 - Services handle validation, ID handling, mapping, and orchestration
 - OrionService remains low-level only (HTTP/NGSIv2 transport and broker error handling)
+
+Validation scope in implemented backend services:
+- Required fields
+- Basic type checks
+- Simple format checks (email, datetime)
+- Numeric constraints for capacity/count fields
+- Relationship checks limited to referenced entity existence in Orion
+- No deep cross-entity consistency rules in Issue 1C
 
 **app/models/exceptions.py** (Error Hierarchy):
 - ApplicationError (base exception)
@@ -158,16 +198,20 @@ Examples:
 - Buy-one-unit inventory patch:
   PATCH /v2/entities/<inventoryitem_id>/attrs with increment semantics.
 
+Implemented backend endpoint matrix:
+- /api/products and /api/products/<id>
+- /api/stores and /api/stores/<id>
+- /api/employees and /api/employees/<id>
+- /api/shelves and /api/shelves/<id>
+- /api/inventory-items and /api/inventory-items/<id>
+
 ## 4.2 WebSocket Communication (Socket.IO)
 Primary channel:
 - Backend to Frontend: real-time notifications for relevant business events.
 
-Events include:
-- Product price change.
-- Low stock warning.
-
-Expected behavior:
-- Frontend updates all active views where changed entities are displayed.
+Current status:
+- Backend Socket.IO emission is implemented.
+- Frontend Socket.IO client consumption is pending.
 
 ## 5. Data Flows
 
@@ -195,31 +239,28 @@ Expected behavior:
    - Product price reflected in all relevant views.
 
 ## 5.4 Store Purchase Flow (Buy One Unit)
-1. User clicks Buy one unit in Store detail InventoryItem row.
-2. Frontend requests backend purchase endpoint.
-3. Backend sends Orion patch increment request:
-   - shelfCount decrement by 1
-   - stockCount decrement by 1
-4. Orion applies atomic attribute updates.
-5. Backend returns updated state and frontend refreshes impacted values.
-6. If low stock threshold is crossed, Orion subscription notification triggers standard notification flow.
+1. User clicks Buy product in a Store detail InventoryItem row.
+2. Frontend reads current `shelfCount` and `stockCount` from the selected InventoryItem entity.
+3. Frontend calls `PATCH /api/inventory-items/<id>` with both values decremented by 1.
+4. Backend validates and forwards the update through OrionService.
+5. Frontend reloads Store detail data using the existing fetch/render cycle.
 
 ## 6. View-to-Component Mapping
 
 - Home:
-  - Frontend Mermaid render of entity UML.
+  - Static dashboard entry view.
 - Products view:
-  - Product table CRUD, color/size display.
-- Product detail:
-  - Inventory grouped by Store and Shelf; constrained Shelf selection.
+  - Product table CRUD, including color/size/price columns.
 - Stores view:
-  - Store table with environmental metrics and CRUD.
-- Store detail:
-  - Leaflet map, Three.js immersive shelf/product view, grouped inventory by Shelf, purchase action, tweets, notifications panel.
+  - Store table CRUD and Store detail section for inventory grouping.
+- Store detail (inside Stores view):
+  - Inventory grouped by Shelf.
+  - Products rendered per Shelf with image, name, price, size, color.
+  - shelfCount and stockCount shown per InventoryItem.
+  - Shelf capacity progress bar.
+  - Add Shelf, Add InventoryItem, and Buy product actions.
 - Employees view:
-  - Employee table with category/skills and CSS hover photo transition.
-- Stores Map:
-  - Leaflet map with Store imagery, hover cards, and click-to-detail navigation.
+  - Employee table CRUD with category and skills.
 
 ## 7. Architectural Constraints and Quality Decisions
 
@@ -235,8 +276,7 @@ Startup sequence requirements:
 1. Start infrastructure services (MongoDB, Orion, tutorial provider).
 2. Start Flask backend.
 3. Execute backend startup tasks:
-   - Register context providers.
-   - Register subscriptions.
+  - Register subscriptions.
 4. Open frontend UI.
 
 Failure handling expectations:
