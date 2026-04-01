@@ -1,0 +1,196 @@
+"""Initial backend data seeding script.
+
+Run with:
+    python seed_data.py
+"""
+
+from dotenv import load_dotenv
+
+from app import create_app
+
+
+def seed_data(app=None):
+    """Seed initial Product, Store, Employee, Shelf and InventoryItem entities.
+
+    This function is structured to be callable from elsewhere in the future
+    (for example, from create_app) by passing an app instance.
+    """
+    load_dotenv()
+
+    flask_app = app or create_app()
+
+    with flask_app.app_context():
+        product_service = flask_app.product_service
+        store_service = flask_app.store_service
+        employee_service = flask_app.employee_service
+        shelf_service = flask_app.shelf_service
+        inventory_item_service = flask_app.inventory_item_service
+
+        existing_products = product_service.list()
+        if existing_products:
+            print('Seed skipped: products already exist, no data duplicated.')
+            return
+
+        products_data = [
+            {'id': 'product-001', 'name': 'Red Apple', 'image': '/img/products/apple.png', 'size': '1kg', 'price': 2.5, 'color': '#D12A2A'},
+            {'id': 'product-002', 'name': 'Banana Pack', 'image': '/img/products/banana.png', 'size': '1kg', 'price': 2.1, 'color': '#F2D22E'},
+            {'id': 'product-003', 'name': 'Whole Milk', 'image': '/img/products/milk.png', 'size': '1L', 'price': 1.6, 'color': '#F4F4F4'},
+            {'id': 'product-004', 'name': 'Brown Bread', 'image': '/img/products/bread.png', 'size': '500g', 'price': 1.4, 'color': '#8B5A2B'},
+            {'id': 'product-005', 'name': 'White Rice', 'image': '/img/products/rice.png', 'size': '1kg', 'price': 2.9, 'color': '#EFEDE7'},
+            {'id': 'product-006', 'name': 'Olive Oil', 'image': '/img/products/oil.png', 'size': '1L', 'price': 5.8, 'color': '#B8A22A'},
+            {'id': 'product-007', 'name': 'Coffee Beans', 'image': '/img/products/coffee.png', 'size': '500g', 'price': 7.2, 'color': '#4E342E'},
+            {'id': 'product-008', 'name': 'Orange Juice', 'image': '/img/products/juice.png', 'size': '1L', 'price': 2.7, 'color': '#F08C00'},
+            {'id': 'product-009', 'name': 'Tomato Sauce', 'image': '/img/products/sauce.png', 'size': '350g', 'price': 1.9, 'color': '#C62828'},
+            {'id': 'product-010', 'name': 'Pasta', 'image': '/img/products/pasta.png', 'size': '500g', 'price': 1.3, 'color': '#E9D8A6'},
+        ]
+
+        stores_data = [
+            {
+                'id': 'store-001',
+                'name': 'North Market',
+                'image': '/img/stores/north.png',
+                'address': {'streetAddress': '1 North Ave', 'addressLocality': 'Springfield'},
+                'location': {'type': 'Point', 'coordinates': [-3.7038, 40.4168]},
+                'url': 'https://north.example.com',
+                'telephone': '+34-111-111-111',
+                'countryCode': 'ES',
+                'capacity': 1200,
+                'description': 'Main northern store',
+            },
+            {
+                'id': 'store-002',
+                'name': 'South Market',
+                'image': '/img/stores/south.png',
+                'address': {'streetAddress': '25 South Blvd', 'addressLocality': 'Springfield'},
+                'location': {'type': 'Point', 'coordinates': [-3.6938, 40.4068]},
+                'url': 'https://south.example.com',
+                'telephone': '+34-222-222-222',
+                'countryCode': 'ES',
+                'capacity': 1100,
+                'description': 'Main southern store',
+            },
+            {
+                'id': 'store-003',
+                'name': 'East Market',
+                'image': '/img/stores/east.png',
+                'address': {'streetAddress': '14 East St', 'addressLocality': 'Springfield'},
+                'location': {'type': 'Point', 'coordinates': [-3.6838, 40.4168]},
+                'url': 'https://east.example.com',
+                'telephone': '+34-333-333-333',
+                'countryCode': 'ES',
+                'capacity': 1300,
+                'description': 'Main eastern store',
+            },
+            {
+                'id': 'store-004',
+                'name': 'West Market',
+                'image': '/img/stores/west.png',
+                'address': {'streetAddress': '50 West Rd', 'addressLocality': 'Springfield'},
+                'location': {'type': 'Point', 'coordinates': [-3.7138, 40.4168]},
+                'url': 'https://west.example.com',
+                'telephone': '+34-444-444-444',
+                'countryCode': 'ES',
+                'capacity': 1250,
+                'description': 'Main western store',
+            },
+        ]
+
+        employees_data = [
+            {
+                'id': 'employee-001',
+                'name': 'Alex Martin',
+                'image': '/img/employees/alex.png',
+                'category': 'Manager',
+                'email': 'alex.martin@example.com',
+                'dateOfContract': '2024-01-15T09:00:00Z',
+                'skills': ['WritingReports', 'CustomerRelationships'],
+                'username': 'alex.martin',
+                'password': 'pass1234',
+                'refStore': 'store-001',
+            },
+            {
+                'id': 'employee-002',
+                'name': 'Bea Lopez',
+                'image': '/img/employees/bea.png',
+                'category': 'Operator',
+                'email': 'bea.lopez@example.com',
+                'dateOfContract': '2024-02-20T09:00:00Z',
+                'skills': ['MachineryDriving'],
+                'username': 'bea.lopez',
+                'password': 'pass1234',
+                'refStore': 'store-002',
+            },
+            {
+                'id': 'employee-003',
+                'name': 'Chris Vega',
+                'image': '/img/employees/chris.png',
+                'category': 'Supervisor',
+                'email': 'chris.vega@example.com',
+                'dateOfContract': '2024-03-10T09:00:00Z',
+                'skills': ['CustomerRelationships', 'MachineryDriving'],
+                'username': 'chris.vega',
+                'password': 'pass1234',
+                'refStore': 'store-003',
+            },
+            {
+                'id': 'employee-004',
+                'name': 'Dana Ruiz',
+                'image': '/img/employees/dana.png',
+                'category': 'Clerk',
+                'email': 'dana.ruiz@example.com',
+                'dateOfContract': '2024-04-05T09:00:00Z',
+                'skills': ['WritingReports'],
+                'username': 'dana.ruiz',
+                'password': 'pass1234',
+                'refStore': 'store-004',
+            },
+        ]
+
+        created_products = [product_service.create(product) for product in products_data]
+        created_stores = [store_service.create(store) for store in stores_data]
+        created_employees = [employee_service.create(employee) for employee in employees_data]
+
+        shelves_by_store = {}
+        for store in created_stores:
+            store_id = store['id']
+            store_shelves = []
+            for shelf_index in range(1, 5):
+                shelf_payload = {
+                    'id': f'{store_id}-shelf-{shelf_index:02d}',
+                    'name': f'Shelf {shelf_index}',
+                    'maxCapacity': 200,
+                    'refStore': store_id,
+                }
+                store_shelves.append(shelf_service.create(shelf_payload))
+            shelves_by_store[store_id] = store_shelves
+
+        product_ids = [product['id'] for product in created_products]
+        for store in created_stores:
+            store_id = store['id']
+            for shelf_position, shelf in enumerate(shelves_by_store[store_id], start=1):
+                shelf_id = shelf['id']
+                for item_offset in range(4):
+                    product_id = product_ids[(shelf_position * 4 + item_offset) % len(product_ids)]
+                    count = 20 + item_offset
+                    inventory_payload = {
+                        'id': f'{shelf_id}-item-{item_offset + 1:02d}',
+                        'shelfCount': count,
+                        'stockCount': count + 30,
+                        'refStore': store_id,
+                        'refShelf': shelf_id,
+                        'refProduct': product_id,
+                    }
+                    inventory_item_service.create(inventory_payload)
+
+        print(
+            'Seed complete: '
+            f"{len(created_products)} products, "
+            f"{len(created_stores)} stores, "
+            f"{len(created_employees)} employees, "
+            f"{sum(len(shelves) for shelves in shelves_by_store.values())} shelves, "
+            f"{4 * sum(len(shelves) for shelves in shelves_by_store.values())} inventory items."
+        )
+
+
+if __name__ == '__main__':
+    seed_data()
