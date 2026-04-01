@@ -335,3 +335,63 @@ class OrionService:
         
         logger.debug(f"Incrementing {attr_name} on {entity_id} by {inc_value}")
         return self.update_entity_attrs(entity_id, attrs)
+    
+    def list_subscriptions(self) -> list:
+        """
+        List all subscriptions in Orion.
+        
+        Returns:
+            list: List of subscription objects
+        
+        Raises:
+            OrionConnectionError: On connection failure
+        """
+        url = urljoin(self.base_url, '/v2/subscriptions')
+        
+        logger.debug("Listing Orion subscriptions")
+        
+        try:
+            response = self.session.get(url, headers=self._get_headers(), timeout=self.timeout)
+            subscriptions = self._handle_response(response, "list_subscriptions")
+            
+            if isinstance(subscriptions, dict) and 'results' in subscriptions:
+                subscriptions = subscriptions['results']
+            elif not isinstance(subscriptions, list):
+                subscriptions = [subscriptions] if subscriptions else []
+            
+            logger.debug(f"Listed {len(subscriptions)} subscriptions")
+            return subscriptions
+        
+        except (OrionAPIError, OrionConnectionError):
+            raise
+    
+    def create_subscription(self, subscription_payload: Dict[str, Any]) -> Optional[str]:
+        """
+        Create a subscription in Orion.
+        
+        Args:
+            subscription_payload (Dict): NGSIv2 subscription payload
+        
+        Returns:
+            Optional[str]: Subscription ID if created successfully, None otherwise
+        
+        Raises:
+            OrionAPIError: On creation failure
+            OrionConnectionError: On connection failure
+        """
+        url = urljoin(self.base_url, '/v2/subscriptions')
+        
+        logger.debug(f"Creating subscription: {subscription_payload.get('description', 'unknown')}")
+        
+        try:
+            response = self.session.post(url, json=subscription_payload, headers=self._get_json_headers(), timeout=self.timeout)
+            self._handle_response(response, "create_subscription")
+            
+            # Extract subscription ID from Location header
+            subscription_id = response.headers.get('Location', '').split('/')[-1]
+            logger.info(f"Subscription created: id={subscription_id}, description={subscription_payload.get('description', 'unknown')}")
+            
+            return subscription_id if subscription_id else None
+        
+        except (OrionAPIError, OrionConnectionError):
+            raise

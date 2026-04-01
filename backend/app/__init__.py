@@ -20,6 +20,7 @@ from app.services import (
     EmployeeService,
     ShelfService,
     InventoryItemService,
+    SubscriptionService,
 )
 from app.models.exceptions import (
     ApplicationError,
@@ -33,6 +34,7 @@ from app.routes import (
     employee_bp,
     shelf_bp,
     inventory_item_bp,
+    notification_bp,
 )
 
 
@@ -101,7 +103,22 @@ def create_app(config_name=None):
     app.register_blueprint(employee_bp)
     app.register_blueprint(shelf_bp)
     app.register_blueprint(inventory_item_bp)
-    logger.debug("Health check blueprint registered")
+    app.register_blueprint(notification_bp)
+    logger.debug("Health check and notification blueprints registered")
+    
+    # Register Orion subscriptions for price changes and low stock alerts
+    try:
+        subscription_service = SubscriptionService(
+            orion_service=orion_service,
+            notification_url=app.config.get('ORION_NOTIFICATION_URL', 'http://host.docker.internal:5000/api/notifications'),
+            low_stock_threshold=app.config.get('LOW_STOCK_THRESHOLD', 5),
+        )
+        subscription_service.register_subscriptions()
+        logger.info("Orion subscriptions registered successfully")
+    except OrionConnectionError as e:
+        logger.warning(f"Orion subscriptions registration skipped: Orion unavailable ({e})")
+    except Exception as e:
+        logger.warning(f"Orion subscriptions registration skipped due to error: {e}")
     
     # Register error handlers
     register_error_handlers(app)
