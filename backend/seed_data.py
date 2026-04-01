@@ -6,8 +6,6 @@ Run with:
 
 from dotenv import load_dotenv
 
-from app import create_app
-
 
 def seed_data(app=None):
     """Seed initial Product, Store, Employee, Shelf and InventoryItem entities.
@@ -17,7 +15,11 @@ def seed_data(app=None):
     """
     load_dotenv()
 
-    flask_app = app or create_app()
+    if app is None:
+        from app import create_app
+        flask_app = create_app()
+    else:
+        flask_app = app
 
     with flask_app.app_context():
         product_service = flask_app.product_service

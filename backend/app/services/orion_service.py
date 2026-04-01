@@ -51,16 +51,27 @@ class OrionService:
     
     def _get_headers(self) -> Dict[str, str]:
         """
-        Get standard NGSIv2 HTTP headers.
+        Get base NGSIv2 HTTP headers.
         
         Returns:
             Dict[str, str]: HTTP headers for Orion requests
         """
         return {
-            'Content-Type': 'application/json',
             'Accept': 'application/json',
             'Fiware-Service': self.fiware_service,
             'Fiware-ServicePath': self.fiware_servicepath,
+        }
+
+    def _get_json_headers(self) -> Dict[str, str]:
+        """
+        Get NGSIv2 headers for JSON request bodies.
+
+        Returns:
+            Dict[str, str]: HTTP headers including Content-Type
+        """
+        return {
+            **self._get_headers(),
+            'Content-Type': 'application/json',
         }
     
     def _handle_response(self, response: requests.Response, context: str = '') -> Dict[str, Any]:
@@ -163,7 +174,7 @@ class OrionService:
         logger.debug(f"Creating entity type={entity_type} with id={entity_id}")
         
         try:
-            response = self.session.post(url, json=payload, headers=self._get_headers(), timeout=self.timeout)
+            response = self.session.post(url, json=payload, headers=self._get_json_headers(), timeout=self.timeout)
             self._handle_response(response, f"create_entity type={entity_type}")
             logger.info(f"Entity created: type={entity_type}, id={entity_id}")
 
@@ -258,7 +269,7 @@ class OrionService:
         logger.debug(f"Updating entity attrs: {entity_id} with {list(attrs.keys())}")
         
         try:
-            response = self.session.patch(url, json=attrs, headers=self._get_headers(), timeout=self.timeout)
+            response = self.session.patch(url, json=attrs, headers=self._get_json_headers(), timeout=self.timeout)
             self._handle_response(response, f"update_entity_attrs id={entity_id}")
             logger.info(f"Entity attributes updated: {entity_id}")
             
