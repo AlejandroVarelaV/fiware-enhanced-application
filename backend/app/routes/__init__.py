@@ -7,6 +7,7 @@ from .employee_routes import employee_bp
 from .shelf_routes import shelf_bp
 from .inventory_item_routes import inventory_item_bp
 from .notification_routes import notification_bp
+from .registration_routes import registration_bp
 
 __all__ = [
 	'health_bp',
@@ -16,4 +17,5 @@ __all__ = [
 	'shelf_bp',
 	'inventory_item_bp',
 	'notification_bp',
+	'registration_bp',
 ]

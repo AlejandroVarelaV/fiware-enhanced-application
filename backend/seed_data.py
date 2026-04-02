@@ -6,6 +6,8 @@ Run with:
 
 from dotenv import load_dotenv
 
+from app.utils.ngsi_helpers import from_ngsi, to_ngsi
+
 
 def seed_data(app=None):
     """Seed initial Product, Store, Employee, Shelf and InventoryItem entities.
@@ -23,10 +25,10 @@ def seed_data(app=None):
 
     with flask_app.app_context():
         product_service = flask_app.product_service
-        store_service = flask_app.store_service
         employee_service = flask_app.employee_service
         shelf_service = flask_app.shelf_service
         inventory_item_service = flask_app.inventory_item_service
+        orion_service = flask_app.orion_service
 
         existing_products = product_service.list()
         if existing_products:
@@ -58,6 +60,9 @@ def seed_data(app=None):
                 'countryCode': 'ES',
                 'capacity': 1200,
                 'description': 'Main northern store',
+                'temperature': {'type': 'Float', 'value': 21.0},
+                'relativeHumidity': {'type': 'Float', 'value': 0.68},
+                'tweets': {'type': 'StructuredValue', 'value': []},
             },
             {
                 'id': 'store-002',
@@ -70,6 +75,9 @@ def seed_data(app=None):
                 'countryCode': 'ES',
                 'capacity': 1100,
                 'description': 'Main southern store',
+                'temperature': {'type': 'Float', 'value': 21.0},
+                'relativeHumidity': {'type': 'Float', 'value': 0.68},
+                'tweets': {'type': 'StructuredValue', 'value': []},
             },
             {
                 'id': 'store-003',
@@ -82,6 +90,9 @@ def seed_data(app=None):
                 'countryCode': 'ES',
                 'capacity': 1300,
                 'description': 'Main eastern store',
+                'temperature': {'type': 'Float', 'value': 21.0},
+                'relativeHumidity': {'type': 'Float', 'value': 0.68},
+                'tweets': {'type': 'StructuredValue', 'value': []},
             },
             {
                 'id': 'store-004',
@@ -94,6 +105,9 @@ def seed_data(app=None):
                 'countryCode': 'ES',
                 'capacity': 1250,
                 'description': 'Main western store',
+                'temperature': {'type': 'Float', 'value': 21.0},
+                'relativeHumidity': {'type': 'Float', 'value': 0.68},
+                'tweets': {'type': 'StructuredValue', 'value': []},
             },
         ]
 
@@ -149,7 +163,18 @@ def seed_data(app=None):
         ]
 
         created_products = [product_service.create(product) for product in products_data]
-        created_stores = [store_service.create(store) for store in stores_data]
+
+        created_stores = []
+        for store in stores_data:
+            ngsi_store = to_ngsi(store)
+            # Keep explicit NGSIv2 typing for external provider placeholders.
+            ngsi_store['temperature'] = store['temperature']
+            ngsi_store['relativeHumidity'] = store['relativeHumidity']
+            ngsi_store['tweets'] = store['tweets']
+
+            created_store = orion_service.create_entity('Store', ngsi_store)
+            created_stores.append(from_ngsi(created_store))
+
         created_employees = [employee_service.create(employee) for employee in employees_data]
 
         shelves_by_store = {}

@@ -194,6 +194,16 @@ Store attributes temperature, relativeHumidity, and tweets are externally provid
 - Treated as standard Store attributes at query/render time.
 - `tweets` shall be modeled as `StructuredValue` to preserve provider payload structure.
 
+Seed initialization requirements for Store placeholders:
+- `temperature` must be initialized using explicit NGSIv2 shape: `{"type": "Float", "value": 21.0}`
+- `relativeHumidity` must be initialized using explicit NGSIv2 shape: `{"type": "Float", "value": 0.68}`
+- `tweets` must be initialized using explicit NGSIv2 shape: `{"type": "StructuredValue", "value": []}`
+
+Startup registration split:
+- Registration A: `Store.temperature`, `Store.relativeHumidity`
+- Registration B: `Store.tweets`
+- Both registrations use provider URL `http://tutorial:3000/api/v2` with `legacyForwarding=true`.
+
 ## 5.1 Subscription Trigger Implementation Clarification
 
 Trigger behavior for `Product.price` and `InventoryItem.stockCount` is implemented through Orion subscriptions.

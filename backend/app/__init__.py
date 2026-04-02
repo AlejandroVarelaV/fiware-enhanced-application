@@ -14,6 +14,7 @@ from config import get_config
 from seed_data import seed_data
 from app.utils.logger import setup_logging, get_logger
 from app.socketio_instance import socketio
+from app.services.context_provider_service import register_all_context_providers
 from app.services import (
     OrionService,
     ProductService,
@@ -37,6 +38,7 @@ from app.routes import (
     shelf_bp,
     inventory_item_bp,
     notification_bp,
+    registration_bp,
 )
 
 
@@ -113,6 +115,7 @@ def create_app(config_name=None):
     app.register_blueprint(shelf_bp)
     app.register_blueprint(inventory_item_bp)
     app.register_blueprint(notification_bp)
+    app.register_blueprint(registration_bp)
     logger.debug("Health check and notification blueprints registered")
     
     # Register Orion subscriptions for price changes and low stock alerts
@@ -128,6 +131,13 @@ def create_app(config_name=None):
         logger.warning(f"Orion subscriptions registration skipped: Orion unavailable ({e})")
     except Exception as e:
         logger.warning(f"Orion subscriptions registration skipped due to error: {e}")
+
+    # Register Orion external context providers after subscription setup.
+    try:
+        register_all_context_providers(orion_service)
+        logger.info("Orion external context providers registered")
+    except Exception as e:
+        logger.warning(f"Orion context providers registration skipped due to error: {e}")
     
     # Register error handlers
     register_error_handlers(app)
