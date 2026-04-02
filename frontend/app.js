@@ -109,6 +109,14 @@ const translations = {
     'storeDetail.meta.color': 'color',
     'storeDetail.meta.shelfCount': 'shelfCount',
     'storeDetail.meta.stockCount': 'stockCount',
+    'store.weather.title': 'Weather',
+    'store.weather.temperature': 'Temperature',
+    'store.weather.humidity': 'Humidity',
+    'store.weather.noData': 'No weather data',
+    'store.tweets.title': 'Tweets',
+    'store.tweets.empty': 'No tweets available.',
+    'store.photo.alt': 'Store photo',
+    'store.notifications.title': 'Store notifications',
     'notifications.title': 'Notifications',
     'notifications.empty': 'No notifications yet.',
     'notifications.orionTitle': 'Orion notification',
@@ -290,6 +298,14 @@ const translations = {
     'storeDetail.meta.color': 'color',
     'storeDetail.meta.shelfCount': 'cantidadEstanteria',
     'storeDetail.meta.stockCount': 'stock',
+    'store.weather.title': 'Clima',
+    'store.weather.temperature': 'Temperatura',
+    'store.weather.humidity': 'Humedad',
+    'store.weather.noData': 'Sin datos de clima',
+    'store.tweets.title': 'Tweets',
+    'store.tweets.empty': 'No hay tweets disponibles.',
+    'store.photo.alt': 'Foto de la tienda',
+    'store.notifications.title': 'Notificaciones de tienda',
     'notifications.title': 'Notificaciones',
     'notifications.empty': 'Aun no hay notificaciones.',
     'notifications.orionTitle': 'Notificacion de Orion',
@@ -507,6 +523,13 @@ const storeDescriptionInput = document.getElementById('store-description');
 const storeSelector = document.getElementById('store-selector');
 const storeDetailFeedback = document.getElementById('store-detail-feedback');
 const storeShelvesContainer = document.getElementById('store-shelves-container');
+const storePhotoImage = document.getElementById('store-photo-image');
+const storeTempIcon = document.getElementById('store-temp-icon');
+const storeTempValue = document.getElementById('store-temp-value');
+const storeHumidityIcon = document.getElementById('store-humidity-icon');
+const storeHumidityValue = document.getElementById('store-humidity-value');
+const storeTweetsList = document.getElementById('store-tweets-list');
+const storeTweetTemplate = document.getElementById('store-tweet-template');
 const addShelfButton = document.getElementById('add-shelf-btn');
 const addInventoryItemButton = document.getElementById('add-inventory-item-btn');
 const refreshStoreDetailButton = document.getElementById('refresh-store-detail-btn');
@@ -547,6 +570,10 @@ function refreshUiLanguageStrings() {
   renderProductsTable(productsCache);
   renderStoresTable(storesCache);
   renderEmployeesTable(employeesCache);
+
+  const selectedStore = storesCache.find((store) => store.id === selectedStoreId);
+  updateWeatherDisplay(selectedStore ? selectedStore.temperature : null, selectedStore ? selectedStore.relativeHumidity : null);
+  renderTweets(selectedStore ? selectedStore.tweets : []);
 
   if (!productDetailView.classList.contains('hidden') && selectedProductId) {
     showProductDetail(selectedProductId);
@@ -1360,6 +1387,7 @@ async function loadStoreDetailData(preferredStoreId = '') {
     selectedStoreId = '';
     renderStoreSelector('');
     renderStoreShelves([], [], new Map());
+    updateStoreDetailPanels(null);
     setStoreDetailFeedback(t('storeDetail.empty.noStoresForDetail'));
     return;
   }
@@ -1390,12 +1418,133 @@ async function loadStoreDetailData(preferredStoreId = '') {
     productsCache = await productsResponse.json();
 
     renderStoreSelector(preferredStoreId);
+    updateStoreDetailPanels(getSelectedStore());
     renderCurrentStoreInventory();
     setStoreDetailFeedback(t('storeDetail.updatedInventory'));
   } catch (error) {
     renderStoreShelves([], [], new Map());
+    updateStoreDetailPanels(null);
     setStoreDetailFeedback(error.message, true);
   }
+}
+
+function getSelectedStore() {
+  return storesCache.find((store) => store.id === selectedStoreId) || null;
+}
+
+function updateStorePhoto(store) {
+  if (!storePhotoImage) {
+    return;
+  }
+
+  storePhotoImage.src = store && store.image ? store.image : '';
+  storePhotoImage.alt = store && store.name ? store.name : t('store.photo.alt');
+}
+
+function updateWeatherDisplay(temp, humidity) {
+  if (!storeTempIcon || !storeTempValue || !storeHumidityIcon || !storeHumidityValue) {
+    return;
+  }
+
+  const hasTemp = Number.isFinite(Number(temp));
+  const hasHumidity = Number.isFinite(Number(humidity));
+  const numericTemp = Number(temp);
+  const numericHumidity = Number(humidity);
+
+  storeTempIcon.className = 'fa-solid';
+  storeHumidityIcon.className = 'fa-solid';
+
+  if (hasTemp) {
+    if (numericTemp < 15) {
+      storeTempIcon.classList.add('fa-thermometer-quarter', 'temp-cold');
+    } else if (numericTemp <= 25) {
+      storeTempIcon.classList.add('fa-thermometer-half', 'temp-warm');
+    } else {
+      storeTempIcon.classList.add('fa-thermometer-full', 'temp-hot');
+    }
+    storeTempValue.textContent = `${numericTemp} C`;
+  } else {
+    storeTempIcon.classList.add('fa-thermometer-half');
+    storeTempValue.textContent = t('store.weather.noData');
+  }
+
+  storeHumidityIcon.classList.add('fa-tint');
+  if (hasHumidity) {
+    if (numericHumidity < 0.4) {
+      storeHumidityIcon.classList.add('humidity-low');
+    } else if (numericHumidity <= 0.7) {
+      storeHumidityIcon.classList.add('humidity-normal');
+    } else {
+      storeHumidityIcon.classList.add('humidity-high');
+    }
+    storeHumidityValue.textContent = `${Math.round(numericHumidity * 100)}%`;
+  } else {
+    storeHumidityValue.textContent = t('store.weather.noData');
+  }
+}
+
+function normalizeTweets(tweets) {
+  if (Array.isArray(tweets)) {
+    return tweets
+      .map((entry) => {
+        if (typeof entry === 'string') {
+          return entry;
+        }
+        if (entry && typeof entry === 'object') {
+          return entry.text || entry.content || entry.value || '';
+        }
+        return '';
+      })
+      .filter((entry) => entry.trim().length > 0);
+  }
+
+  if (tweets && typeof tweets === 'object' && Array.isArray(tweets.value)) {
+    return normalizeTweets(tweets.value);
+  }
+
+  return [];
+}
+
+function renderTweets(tweets) {
+  if (!storeTweetsList || !storeTweetTemplate) {
+    return;
+  }
+
+  Array.from(storeTweetsList.children).forEach((child) => {
+    if (child.id !== 'store-tweet-template') {
+      child.remove();
+    }
+  });
+
+  const normalizedTweets = normalizeTweets(tweets);
+  if (normalizedTweets.length === 0) {
+    const emptyTweetItem = storeTweetTemplate.cloneNode(true);
+    emptyTweetItem.id = '';
+    emptyTweetItem.classList.remove('hidden');
+    const textElement = emptyTweetItem.querySelector('.tweet-text');
+    if (textElement) {
+      textElement.textContent = t('store.tweets.empty');
+    }
+    storeTweetsList.appendChild(emptyTweetItem);
+    return;
+  }
+
+  normalizedTweets.forEach((tweetText) => {
+    const tweetItem = storeTweetTemplate.cloneNode(true);
+    tweetItem.id = '';
+    tweetItem.classList.remove('hidden');
+    const textElement = tweetItem.querySelector('.tweet-text');
+    if (textElement) {
+      textElement.textContent = tweetText;
+    }
+    storeTweetsList.appendChild(tweetItem);
+  });
+}
+
+function updateStoreDetailPanels(store) {
+  updateStorePhoto(store);
+  updateWeatherDisplay(store ? store.temperature : null, store ? store.relativeHumidity : null);
+  renderTweets(store ? store.tweets : []);
 }
 
 function renderStoreSelector(preferredStoreId) {
@@ -1602,16 +1751,9 @@ async function buyOneProduct(inventoryItem) {
     return;
   }
 
-  const payload = {
-    shelfCount: currentShelfCount - 1,
-    stockCount: currentStockCount - 1,
-  };
-
   try {
-    const response = await fetch(`${API_BASE}/api/inventory-items/${inventoryItem.id}`, {
+    const response = await fetch(`${API_BASE}/api/inventory-items/${inventoryItem.id}/buy`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
@@ -1762,6 +1904,7 @@ function handleStoreSelectionChange() {
     return;
   }
   selectedStoreId = storeSelector.value;
+  updateStoreDetailPanels(getSelectedStore());
   renderCurrentStoreInventory();
 }
 

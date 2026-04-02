@@ -36,3 +36,22 @@ def update_inventory_item(inventory_item_id):
 def delete_inventory_item(inventory_item_id):
     current_app.inventory_item_service.delete(inventory_item_id)
     return '', 204
+
+
+@inventory_item_bp.route('/<inventory_item_id>/buy', methods=['PATCH'])
+def buy_inventory_item(inventory_item_id):
+    # Keep the payload exactly as Orion expects for an atomic decrement.
+    payload = {
+        'shelfCount': {'type': 'Integer', 'value': {'$inc': -1}},
+        'stockCount': {'type': 'Integer', 'value': {'$inc': -1}},
+    }
+
+    try:
+        updated_entity = current_app.orion_service.update_entity_attrs(inventory_item_id, payload)
+        return jsonify(updated_entity), 200
+    except Exception as exc:
+        current_app.logger.exception('Failed to buy inventory item %s', inventory_item_id)
+        return jsonify({
+            'error': 'BUY_OPERATION_FAILED',
+            'message': str(exc),
+        }), 500
