@@ -362,6 +362,92 @@ select {
   outline: 2px solid var(--color-secondary);
 }
 
+.store-detail-top-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 320px) 1fr;
+  gap: 14px;
+  align-items: start;
+  margin-bottom: 12px;
+}
+
+.store-photo-container {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
+}
+
+.store-photo-container img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+
+.store-photo-container:hover img {
+  transform: scale(1.15) rotate(360deg);
+}
+
+.store-weather-panel {
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+#store-tweets-section {
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+#store-tweets-list {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+#store-tweets-list li {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.temp-cold {
+  color: #1f77d0;
+}
+
+.temp-warm {
+  color: #ff8c00;
+}
+
+.temp-hot {
+  color: #da020e;
+}
+
+.humidity-low {
+  color: #e1b100;
+}
+
+.humidity-normal {
+  color: #2e8b57;
+}
+
+.humidity-high {
+  color: #1f77d0;
+}
+
+#store-notifications-panel {
+  border-left: 4px solid #DA020E;
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+html[data-theme="dark"] #store-notifications-panel {
+  background: #191919;
+}
+
 @media (max-width: 900px) {
   .site-header {
     align-items: flex-start;
@@ -400,5 +486,9 @@ select {
     min-width: 0;
     width: 100%;
     max-width: none;
+  }
+
+  .store-detail-top-grid {
+    grid-template-columns: 1fr;
   }
 }

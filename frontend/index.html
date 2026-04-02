@@ -299,14 +299,47 @@ classDiagram
           <button id="add-inventory-item-btn" type="button" data-i18n="storeDetail.addInventoryItem">Add Inventory Item</button>
         </div>
         <p id="store-detail-feedback" class="feedback" role="status" aria-live="polite"></p>
+
+        <div class="store-detail-top-grid">
+          <div class="store-photo-container">
+            <img id="store-photo-image" class="entity-image store-photo-image" src="" alt="" data-i18n-aria-label="store.photo.alt" aria-label="Store photo">
+          </div>
+
+          <div class="store-weather-panel">
+            <h4 data-i18n="store.weather.title">Weather</h4>
+            <p>
+              <strong data-i18n="store.weather.temperature">Temperature</strong>:
+              <span id="store-temp-icon" class="fa-solid fa-thermometer-half" aria-hidden="true"></span>
+              <span id="store-temp-value">-</span>
+            </p>
+            <p>
+              <strong data-i18n="store.weather.humidity">Humidity</strong>:
+              <span id="store-humidity-icon" class="fa-solid fa-tint" aria-hidden="true"></span>
+              <span id="store-humidity-value">-</span>
+            </p>
+          </div>
+        </div>
+
+        <div id="store-tweets-section">
+          <h4 data-i18n="store.tweets.title">Tweets</h4>
+          <ul id="store-tweets-list">
+            <li id="store-tweet-template" class="hidden">
+              <i class="fa-brands fa-x-twitter" aria-hidden="true"></i>
+              <span class="tweet-text"></span>
+            </li>
+          </ul>
+        </div>
+
         <div id="store-shelves-container"></div>
       </section>
 
       <section id="notifications-section">
         <h3 data-i18n="notifications.title">Notifications</h3>
-        <ul id="notifications-list">
-          <li class="empty-note" data-i18n="notifications.empty">No notifications yet.</li>
-        </ul>
+        <div id="store-notifications-panel">
+          <ul id="notifications-list">
+            <li class="empty-note" data-i18n="notifications.empty">No notifications yet.</li>
+          </ul>
+        </div>
       </section>
     </section>
 
