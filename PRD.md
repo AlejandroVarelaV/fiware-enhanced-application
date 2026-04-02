@@ -78,6 +78,13 @@ Each Store group header shall include an Add InventoryItem action that:
 - Restricts Shelf selection to Shelves in that Store that do not already contain the Product.
 - Uses a dynamically loaded select input for valid Shelf options.
 
+Implemented state after Issue 5:
+- A dedicated Product detail view is available from the Products table by clicking product name or image.
+- Inventory is rendered grouped by Store with Shelf rows below each Store group.
+- Each Store group includes an inline "Add to shelf" panel with a dynamic select of available Shelves.
+- New InventoryItem creation from this view uses fixed initial values `shelfCount=1` and `stockCount=1`.
+- The view includes localized EN/ES labels and a "Back to Products" navigation link.
+
 ### FR-4. Store Detail View
 The Store detail page shall include all items below:
 1. Store location rendered on a map using Leaflet.

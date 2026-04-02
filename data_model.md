@@ -151,6 +151,7 @@ Relationship attributes:
 
 Operational rule:
 - Buy-one-unit operation decrements shelfCount and stockCount by 1 by updating the InventoryItem values.
+- Product-detail add-to-shelf operation creates a new InventoryItem with initial values `shelfCount=1` and `stockCount=1`.
 
 ## 3. Relationship Model
 
@@ -180,7 +181,8 @@ Additional contextual relation used in data access:
 5. A Shelf must always reference one valid Store.
 6. An InventoryItem must reference valid Product, Shelf, and Store entities.
 7. In Product detail view, adding InventoryItem is limited to Shelves in the selected Store that do not already contain that Product.
-8. In Store detail view, adding InventoryItem to Shelf is limited to Products not already present in that Shelf.
+8. In Product detail view, a newly created InventoryItem starts with `shelfCount=1` and `stockCount=1`.
+9. In Store detail view, adding InventoryItem to Shelf is limited to Products not already present in that Shelf.
 
 Issue 1C backend enforcement scope for constraints 4-6:
 - Relationship validation checks only that referenced entities exist in Orion.
@@ -295,6 +297,7 @@ classDiagram
 - Stores list view requires: Store.image, Store.name, Store.countryCode, Store.temperature, Store.relativeHumidity.
 - Employees list view requires: Employee.image, Employee.name, Employee.category, Employee.skills.
 - Product detail grouping requires: InventoryItem.stockCount by Store and InventoryItem.shelfCount by Shelf.
+- Product detail add-to-shelf selector requires: Shelf.refStore filtering and exclusion of Shelves already linked by (InventoryItem.refStore, InventoryItem.refProduct, InventoryItem.refShelf).
 - Store detail grouped table requires: Shelf.name, Shelf.maxCapacity, Product(image/name/price/size/color), InventoryItem.stockCount, InventoryItem.shelfCount.
 - Store map/detail requires: Store.location and Store.image.
 
@@ -328,7 +331,7 @@ This initialization baseline ensures all mandatory UI views and grouping behavio
 
 ### 10.2 Pending
 
-- Frontend real-time notification consumption and advanced visualization layers do not alter this entity model and remain outside current implemented UI scope.
+- Advanced visualization layers (Store map interactions and immersive 3D tour requirements) do not alter this entity model and remain outside current implemented UI scope.
 
 ## 10.3 Issue 4 UX Alignment (Non-Entity State)
 
