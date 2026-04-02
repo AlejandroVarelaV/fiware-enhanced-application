@@ -102,8 +102,10 @@ The Store detail page shall include all items below:
    - Restricts Product selection to not-yet-present Products.
    - Uses a dynamically loaded select input.
 7. Buy one unit action per InventoryItem that sends Orion patch request:
-   - Method and endpoint:
-     PATCH /v2/entities/<inventoryitem_id>/attrs
+    - Frontend calls backend endpoint:
+       PATCH /api/inventory-items/<inventoryitem_id>/buy
+    - Backend forwards atomic Orion PATCH to:
+       PATCH /v2/entities/<inventoryitem_id>/attrs
    - Body:
      {
        "shelfCount": {"type":"Integer", "value": {"$inc": -1}},
@@ -116,6 +118,14 @@ The Store detail page shall include all items below:
 9. Store tweets section shown after the InventoryItems table.
    - Each tweet prefixed by an icon resembling X (Twitter).
 10. Notifications section showing each notification received (for example, low stock notifications for products in the Store).
+
+Implemented state after Issue 6:
+- Store detail now includes a dedicated store photo block with CSS hover transition using zoom + 360 degree rotation.
+- Buy action in Store detail now uses backend route `PATCH /api/inventory-items/<id>/buy`, which forwards the exact Orion atomic decrement payload for `shelfCount` and `stockCount`.
+- Temperature and relative humidity are rendered with icon and color coding based on configured ranges.
+- Store detail includes a tweets section rendered from Store `tweets` data with an X/Twitter icon per item.
+- Store notifications are displayed inside a dedicated panel container with Manchester United red left-border styling.
+- Leaflet map and Three.js immersive store tour remain pending for their dedicated issues.
 
 ## 4.3 Home and Global Navigation
 
@@ -199,6 +209,7 @@ Employee photo shall enlarge on hover using CSS transition.
 
 ### FR-18. Store View Animation
 Store photo shall enlarge and rotate 360 degrees on hover using CSS transition/animation.
+Implemented: Store detail photo is wrapped in a dedicated container and applies CSS-only `scale + rotate(360deg)` transition on hover.
 
 ### FR-19. Shelf Fill Progress Colors
 Shelf fill progress bars shall use different colors according to fill levels.

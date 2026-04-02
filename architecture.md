@@ -38,6 +38,8 @@ Responsibilities:
 - Render Product detail inventory grouped by Store with Shelf sub-rows.
 - Execute CRUD actions through fetch-based REST calls to backend endpoints.
 - Render Store detail using DOM logic with hierarchy Store -> Shelves -> InventoryItems.
+- Render Store detail weather and social context blocks (temperature, relativeHumidity, tweets).
+- Render Store detail photo container with CSS-only rotate+zoom hover animation.
 - Render Product detail using DOM template-row cloning (Store group row + Shelf row templates).
 - Execute Store detail actions (add Shelf, add InventoryItem, buy product).
 - Execute Product detail action to add InventoryItem to an eligible Shelf in the selected Store group.
@@ -142,6 +144,7 @@ The backend is structured in logical layers:
 - employee_routes.py: Employee CRUD endpoints (/api/employees, /api/employees/<id>)
 - shelf_routes.py: Shelf CRUD endpoints (/api/shelves, /api/shelves/<id>)
 - inventory_item_routes.py: InventoryItem CRUD endpoints (/api/inventory-items, /api/inventory-items/<id>)
+  - Includes atomic buy endpoint: PATCH /api/inventory-items/<id>/buy
 - notification_routes.py: Orion callback endpoint (/api/notifications)
 - registration_routes.py: Orion registrations proxy endpoint (GET /api/registrations)
 - Blueprint-based modular design for future endpoint expansion
@@ -225,6 +228,7 @@ Implemented backend endpoint matrix:
 - /api/employees and /api/employees/<id>
 - /api/shelves and /api/shelves/<id>
 - /api/inventory-items and /api/inventory-items/<id>
+- /api/inventory-items/<id>/buy
 
 ## 4.2 WebSocket Communication (Socket.IO)
 Primary channel:
@@ -297,9 +301,9 @@ The diagram highlights the current implemented production flow.
 
 ## 5.4 Store Purchase Flow (Buy One Unit)
 1. User clicks Buy product in a Store detail InventoryItem row.
-2. Frontend reads current `shelfCount` and `stockCount` from the selected InventoryItem entity.
-3. Frontend calls `PATCH /api/inventory-items/<id>` with both values decremented by 1.
-4. Backend validates and forwards the update through OrionService.
+2. Frontend calls `PATCH /api/inventory-items/<id>/buy` (no client-side decrement payload).
+3. Backend forwards the exact atomic Orion payload to `PATCH /v2/entities/<id>/attrs` via `OrionService.update_entity_attrs`.
+4. Orion applies `$inc: -1` to both `shelfCount` and `stockCount` in one PATCH operation.
 5. Frontend reloads Store detail data using the existing fetch/render cycle.
 
 ## 6. View-to-Component Mapping
@@ -322,6 +326,10 @@ The diagram highlights the current implemented production flow.
   - Products rendered per Shelf with image, name, price, size, color.
   - shelfCount and stockCount shown per InventoryItem.
   - Shelf capacity progress bar.
+  - Weather panel with icon/color-coded temperature and humidity values.
+  - Tweets panel rendered using list-template cloning.
+  - Store photo panel with CSS rotate+zoom hover animation.
+  - Notifications panel container with red accent border.
   - Add Shelf, Add InventoryItem, and Buy product actions.
 - Employees view:
   - Employee table CRUD with category and skills.
