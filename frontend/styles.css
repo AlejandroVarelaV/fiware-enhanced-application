@@ -28,6 +28,18 @@ header {
   margin-top: 12px;
 }
 
+.diagram-card {
+  background: #fff;
+  border-left: 4px solid #DA020E;
+  border-radius: 8px;
+  max-width: 1000px;
+  padding: 12px;
+}
+
+.diagram-card .mermaid {
+  overflow-x: auto;
+}
+
 .actions-row {
   display: flex;
   gap: 8px;

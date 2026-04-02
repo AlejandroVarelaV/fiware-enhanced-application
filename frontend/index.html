@@ -20,8 +20,73 @@
   <main>
     <section id="home-view" class="view">
       <h2>Home</h2>
-      <p>Welcome to the Smart Retail frontend.</p>
-      <p>Use the navigation bar to manage entities.</p>
+      <h3>Entity Model</h3>
+      <div class="diagram-card">
+        <div class="mermaid">
+classDiagram
+    class Store {
+      +id: URI
+      +name: Text
+      +image: Text
+      +address: StructuredValue
+      +location: geo:json Point
+      +url: Text
+      +telephone: Text
+      +countryCode: Text(2)
+      +capacity: Number
+      +description: Text
+      +temperature: Number [external]
+      +relativeHumidity: Number [external]
+      +tweets: StructuredValue [external]
+    }
+
+    class Employee {
+      +id: URI
+      +name: Text
+      +image: Text
+      +category: Text
+      +email: Text
+      +dateOfContract: DateTime
+      +skills: Array~SkillEnum~
+      +username: Text
+      +password: Text
+      +refStore: URI
+    }
+
+    class Product {
+      +id: URI
+      +name: Text
+      +image: Text
+      +size: Text
+      +price: Number
+      +color: Text(hex RGB)
+    }
+
+    class Shelf {
+      +id: URI
+      +name: Text
+      +maxCapacity: Integer
+      +location: geo:json Point
+      +refStore: URI
+    }
+
+    class InventoryItem {
+      +id: URI
+      +shelfCount: Integer
+      +stockCount: Integer
+      +refStore: URI
+      +refShelf: URI
+      +refProduct: URI
+    }
+
+    Store "1" <-- "0..*" Employee : employs
+    Store "1" <-- "0..*" Shelf : contains
+    Shelf "1" <-- "0..*" InventoryItem : holds
+    Product "1" <-- "0..*" InventoryItem : represented by
+    Store "1" <-- "0..*" InventoryItem : contextual stock
+        </div>
+      </div>
+      <p>United Supermarket – FIWARE NGSIv2-powered supermarket management</p>
     </section>
 
     <section id="products-view" class="view hidden">
@@ -252,5 +317,9 @@
 
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script src="app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({ startOnLoad: true, theme: 'default' });
+  </script>
 </body>
 </html>
