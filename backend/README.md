@@ -115,7 +115,9 @@ Orion notifications are delivered to the backend callback endpoint:
 POST /api/notifications
 ```
 
-The backend logs incoming Orion notifications. Real-time browser delivery via Socket.IO is planned for a later iteration and is not yet wired to the frontend.
+The backend logs incoming Orion notifications and emits them to connected browsers through Socket.IO on the `orion_notification` event.
+
+The frontend listens for that event and logs the raw payload in the browser console. The notification panel also shows a short summary so you can verify delivery quickly.
 
 ### Manual testing
 

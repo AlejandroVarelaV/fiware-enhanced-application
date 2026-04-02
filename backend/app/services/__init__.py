@@ -7,6 +7,7 @@ from .employee_service import EmployeeService
 from .shelf_service import ShelfService
 from .inventory_item_service import InventoryItemService
 from .subscription_service import SubscriptionService
+from .notification_event_service import NotificationEventService
 
 __all__ = [
 	'OrionService',
@@ -16,4 +17,5 @@ __all__ = [
 	'ShelfService',
 	'InventoryItemService',
 	'SubscriptionService',
+	'NotificationEventService',
 ]

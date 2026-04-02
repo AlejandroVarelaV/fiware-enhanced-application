@@ -1354,44 +1354,43 @@ function initRealtimeNotifications() {
     console.error('Socket.IO connection error:', error);
   });
 
-  socket.on('product_price_changed', (payload) => {
-    console.log('Socket event: product_price_changed', payload);
+  socket.on('orion_notification', (payload) => {
+    console.log('Socket event: orion_notification', payload);
 
     try {
-      const event = normalizePriceChangedPayload(payload);
-      if (!event) {
-        console.warn('Ignoring malformed product_price_changed event payload.', payload);
+      if (!payload || typeof payload !== 'object') {
+        console.warn('Ignoring malformed orion_notification payload.', payload);
         return;
       }
 
-      updateProductPriceInUI(event.productId, event.price);
-      appendNotification(
-        'Price change',
-        `${event.productName} (${event.productId}) new price: ${event.price}`,
-      );
+      const notificationId = payload.subscriptionId || 'n/a';
+      const entities = Array.isArray(payload.data) ? payload.data : [];
+      const entitySummary = entities.length === 0
+        ? 'No entity data included'
+        : entities.map((entity) => {
+          if (!entity || typeof entity !== 'object') {
+            return 'unknown entity';
+          }
+
+          const entityType = entity.type || 'Entity';
+          const entityId = entity.id || 'n/a';
+          const price = entity.price && typeof entity.price === 'object' ? entity.price.value : undefined;
+          const stockCount = entity.stockCount && typeof entity.stockCount === 'object' ? entity.stockCount.value : undefined;
+
+          if (typeof price !== 'undefined') {
+            return `${entityType} ${entityId} price=${price}`;
+          }
+
+          if (typeof stockCount !== 'undefined') {
+            return `${entityType} ${entityId} stockCount=${stockCount}`;
+          }
+
+          return `${entityType} ${entityId}`;
+        }).join(' | ');
+
+      appendNotification('Orion notification', `Subscription ${notificationId}: ${entitySummary}`);
     } catch (error) {
-      console.error('Error handling product_price_changed event:', error);
-    }
-  });
-
-  socket.on('low_stock', (payload) => {
-    console.log('Socket event: low_stock', payload);
-
-    try {
-      const event = normalizeLowStockPayload(payload);
-      if (!event) {
-        console.warn('Ignoring malformed low_stock event payload.', payload);
-        return;
-      }
-
-      const thresholdText = event.threshold === null ? 'n/a' : String(event.threshold);
-      appendNotification(
-        'Low stock',
-        `Inventory ${event.inventoryId} | product: ${event.productId || 'n/a'} | store: ${event.storeId || 'n/a'} | stock: ${event.stockCount} | threshold: ${thresholdText}`,
-      );
-      highlightLowStockProduct(event.productId, event.storeId);
-    } catch (error) {
-      console.error('Error handling low_stock event:', error);
+      console.error('Error handling orion_notification event:', error);
     }
   });
 }

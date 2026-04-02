@@ -2,6 +2,8 @@
 
 from flask import Blueprint, current_app, jsonify, request
 
+from app.services.notification_event_service import NotificationEventService
+from app.socketio_instance import socketio
 from app.utils.logger import get_logger
 
 
@@ -16,11 +18,10 @@ def receive_notification():
     payload = request.get_json(silent=True)
     logger.info(f"Received Orion notification: {payload}")
 
-    emitted_events = 0
     event_service = getattr(current_app, 'notification_event_service', None)
-    if event_service is not None:
-        emitted_events = event_service.forward_orion_notification(payload)
-    else:
-        logger.warning('notification_event_service not configured; skipping Socket.IO emission')
+    if event_service is None:
+        event_service = NotificationEventService(socketio)
+
+    emitted_events = event_service.forward_orion_notification(payload)
 
     return jsonify({'status': 'received', 'eventsEmitted': emitted_events}), 200
