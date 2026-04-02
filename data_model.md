@@ -150,7 +150,7 @@ Relationship attributes:
 - refStore: Relationship -> Store
 
 Operational rule:
-- Buy-one-unit operation decrements shelfCount and stockCount by 1 by updating the InventoryItem values.
+- Buy-one-unit operation decrements shelfCount and stockCount by 1 through backend endpoint `PATCH /api/inventory-items/<id>/buy`, which forwards Orion atomic increment payload (`$inc: -1`) on both attributes in the same PATCH.
 - Product-detail add-to-shelf operation creates a new InventoryItem with initial values `shelfCount=1` and `stockCount=1`.
 
 ## 3. Relationship Model
@@ -299,6 +299,8 @@ classDiagram
 - Product detail grouping requires: InventoryItem.stockCount by Store and InventoryItem.shelfCount by Shelf.
 - Product detail add-to-shelf selector requires: Shelf.refStore filtering and exclusion of Shelves already linked by (InventoryItem.refStore, InventoryItem.refProduct, InventoryItem.refShelf).
 - Store detail grouped table requires: Shelf.name, Shelf.maxCapacity, Product(image/name/price/size/color), InventoryItem.stockCount, InventoryItem.shelfCount.
+- Store detail weather block requires: Store.temperature and Store.relativeHumidity.
+- Store detail tweets block requires: Store.tweets.
 - Store map/detail requires: Store.location and Store.image.
 
 ## 9. Data Initialization Targets (Assignment-Aligned)
@@ -326,7 +328,7 @@ This initialization baseline ensures all mandatory UI views and grouping behavio
 - Orion subscriptions are implemented for Product price changes and low stock alerts.
 - Backend notification reception and logging are implemented.
 - Frontend renders Store detail grouped by Shelf and InventoryItem using this model.
-- Purchase flow updates `InventoryItem` by decrementing `shelfCount` and `stockCount` from backend entity values.
+- Purchase flow uses backend atomic buy endpoint (`/api/inventory-items/<id>/buy`) that forwards Orion raw `$inc` payload for `shelfCount` and `stockCount`.
 - Frontend Home view renders this Mermaid class diagram with all entity attributes and relationship multiplicities.
 
 ### 10.2 Pending
