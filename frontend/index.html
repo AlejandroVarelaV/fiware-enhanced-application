@@ -158,6 +158,56 @@ classDiagram
       </section>
     </section>
 
+    <section id="product-detail-view" class="view hidden view-product-detail">
+      <a id="pd-back-link" href="#" data-i18n="pd.backToProducts">← Back to Products</a>
+
+      <div class="pd-product-header">
+        <img id="pd-product-image" class="pd-product-image" src="" alt="">
+        <div class="pd-product-meta">
+          <h2 id="pd-product-name"></h2>
+          <div class="pd-product-attributes">
+            <span id="pd-product-color-swatch" class="color-swatch" aria-hidden="true"></span>
+            <span id="pd-product-size"></span>
+            <span id="pd-product-price" data-field="price"></span>
+          </div>
+        </div>
+      </div>
+
+      <p id="pd-feedback" class="feedback" role="status" aria-live="polite"></p>
+
+      <table id="pd-inventory-table">
+        <thead>
+          <tr>
+            <th data-i18n="pd.table.store">Store</th>
+            <th data-i18n="pd.table.stockCount">Stock Count</th>
+            <th data-i18n="pd.table.shelf">Shelf</th>
+            <th data-i18n="pd.table.shelfCount">Shelf Count</th>
+            <th data-i18n="pd.table.actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="pd-inventory-table-body">
+          <tr id="pd-store-row-template" class="store-group-row hidden">
+            <td class="pd-store-name-cell"></td>
+            <td class="pd-store-stock-cell"></td>
+            <td colspan="3">
+              <div class="add-to-shelf-panel">
+                <label class="visually-hidden" data-i18n="pd.addToShelf.selectLabel">Available shelves</label>
+                <select class="available-shelves-select" data-i18n-aria-label="pd.addToShelf.selectLabel" aria-label="Available shelves"></select>
+                <button type="button" class="confirm-add-shelf-btn" data-i18n="pd.addToShelf.confirm">Add to shelf</button>
+              </div>
+            </td>
+          </tr>
+          <tr id="pd-shelf-row-template" class="shelf-row hidden">
+            <td></td>
+            <td class="pd-shelf-stock-empty-cell"></td>
+            <td class="pd-shelf-name-cell"></td>
+            <td class="pd-shelf-count-cell"></td>
+            <td class="pd-shelf-actions-cell"></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
     <section id="stores-view" class="view hidden view-stores">
       <h2 data-i18n="stores.title">Stores</h2>
 

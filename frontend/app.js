@@ -39,6 +39,26 @@ const translations = {
     'products.form.price': 'Price',
     'products.form.save': 'Save',
     'products.form.cancel': 'Cancel',
+    'pd.backToProducts': '← Back to Products',
+    'pd.table.store': 'Store',
+    'pd.table.stockCount': 'Stock Count',
+    'pd.table.shelf': 'Shelf',
+    'pd.table.shelfCount': 'Shelf Count',
+    'pd.table.actions': 'Actions',
+    'pd.addToShelf.selectLabel': 'Available shelves',
+    'pd.addToShelf.confirm': 'Add to shelf',
+    'pd.addToShelf.noneAvailable': 'No shelves available',
+    'pd.addToShelf.chooseShelf': 'Select shelf',
+    'pd.store.unnamed': 'Unnamed store',
+    'pd.shelf.unnamed': 'Unnamed shelf',
+    'pd.header.sizeLabel': 'Size',
+    'pd.header.priceLabel': 'Price',
+    'pd.empty.noInventory': 'No inventory entries found for this product.',
+    'pd.status.loading': 'Loading product detail...',
+    'pd.status.loaded': 'Product detail loaded.',
+    'pd.status.loadError': 'Unable to load product detail.',
+    'pd.status.addedToShelf': 'Inventory item added.',
+    'pd.status.addError': 'Unable to add inventory item.',
     'stores.title': 'Stores',
     'stores.create': 'Create Store',
     'stores.refresh': 'Refresh',
@@ -200,6 +220,26 @@ const translations = {
     'products.form.price': 'Precio',
     'products.form.save': 'Guardar',
     'products.form.cancel': 'Cancelar',
+    'pd.backToProducts': '← Volver a Productos',
+    'pd.table.store': 'Tienda',
+    'pd.table.stockCount': 'Stock',
+    'pd.table.shelf': 'Estanteria',
+    'pd.table.shelfCount': 'Cantidad en estanteria',
+    'pd.table.actions': 'Acciones',
+    'pd.addToShelf.selectLabel': 'Estanterias disponibles',
+    'pd.addToShelf.confirm': 'Anadir a estanteria',
+    'pd.addToShelf.noneAvailable': 'No hay estanterias disponibles',
+    'pd.addToShelf.chooseShelf': 'Selecciona estanteria',
+    'pd.store.unnamed': 'Tienda sin nombre',
+    'pd.shelf.unnamed': 'Estanteria sin nombre',
+    'pd.header.sizeLabel': 'Talla',
+    'pd.header.priceLabel': 'Precio',
+    'pd.empty.noInventory': 'No se encontraron registros de inventario para este producto.',
+    'pd.status.loading': 'Cargando detalle del producto...',
+    'pd.status.loaded': 'Detalle del producto cargado.',
+    'pd.status.loadError': 'No se pudo cargar el detalle del producto.',
+    'pd.status.addedToShelf': 'Item de inventario anadido.',
+    'pd.status.addError': 'No se pudo anadir el item de inventario.',
     'stores.title': 'Tiendas',
     'stores.create': 'Crear Tienda',
     'stores.refresh': 'Actualizar',
@@ -427,6 +467,17 @@ const productNameInput = document.getElementById('product-name');
 const productColorInput = document.getElementById('product-color');
 const productSizeInput = document.getElementById('product-size');
 const productPriceInput = document.getElementById('product-price');
+const productDetailView = document.getElementById('product-detail-view');
+const productDetailBackLink = document.getElementById('pd-back-link');
+const pdProductImage = document.getElementById('pd-product-image');
+const pdProductName = document.getElementById('pd-product-name');
+const pdProductColorSwatch = document.getElementById('pd-product-color-swatch');
+const pdProductSize = document.getElementById('pd-product-size');
+const pdProductPrice = document.getElementById('pd-product-price');
+const pdFeedback = document.getElementById('pd-feedback');
+const pdInventoryTableBody = document.getElementById('pd-inventory-table-body');
+const pdStoreRowTemplate = document.getElementById('pd-store-row-template');
+const pdShelfRowTemplate = document.getElementById('pd-shelf-row-template');
 
 const storesFeedback = document.getElementById('stores-feedback');
 const storesTableBody = document.getElementById('stores-table-body');
@@ -490,11 +541,16 @@ let employeesCache = [];
 let shelvesCache = [];
 let inventoryItemsCache = [];
 let selectedStoreId = '';
+let selectedProductId = '';
 
 function refreshUiLanguageStrings() {
   renderProductsTable(productsCache);
   renderStoresTable(storesCache);
   renderEmployeesTable(employeesCache);
+
+  if (!productDetailView.classList.contains('hidden') && selectedProductId) {
+    showProductDetail(selectedProductId);
+  }
 }
 
 function bindIfPresent(element, eventName, handler) {
@@ -531,6 +587,322 @@ function showView(viewId) {
 
   if (viewId === 'employees-view') {
     loadEmployees();
+  }
+}
+
+function setProductDetailFeedback(message, isError = false) {
+  if (!pdFeedback) {
+    return;
+  }
+  pdFeedback.textContent = message;
+  pdFeedback.style.color = isError ? 'red' : 'inherit';
+}
+
+function clearProductDetailRows() {
+  if (!pdInventoryTableBody) {
+    return;
+  }
+
+  const dynamicRows = pdInventoryTableBody.querySelectorAll('tr[data-template-clone="true"]');
+  dynamicRows.forEach((row) => row.remove());
+}
+
+function clearProductDetailHeader() {
+  if (pdProductImage) {
+    pdProductImage.setAttribute('src', '');
+    pdProductImage.setAttribute('alt', '');
+  }
+
+  if (pdProductName) {
+    pdProductName.textContent = '';
+  }
+
+  if (pdProductColorSwatch) {
+    pdProductColorSwatch.style.backgroundColor = 'transparent';
+    pdProductColorSwatch.setAttribute('title', '');
+  }
+
+  if (pdProductSize) {
+    pdProductSize.textContent = '';
+  }
+
+  if (pdProductPrice) {
+    pdProductPrice.textContent = '';
+  }
+}
+
+function buildInventoryByStoreAndShelf(inventoryItems) {
+  const grouped = new Map();
+
+  inventoryItems.forEach((item) => {
+    const storeId = item.refStore || '';
+    const shelfId = item.refShelf || '';
+
+    if (!grouped.has(storeId)) {
+      grouped.set(storeId, {
+        stockCount: 0,
+        shelves: new Map(),
+      });
+    }
+
+    const storeEntry = grouped.get(storeId);
+    storeEntry.stockCount += Number(item.stockCount || 0);
+
+    if (!storeEntry.shelves.has(shelfId)) {
+      storeEntry.shelves.set(shelfId, {
+        shelfCount: 0,
+      });
+    }
+
+    const shelfEntry = storeEntry.shelves.get(shelfId);
+    shelfEntry.shelfCount += Number(item.shelfCount || 0);
+  });
+
+  return grouped;
+}
+
+async function showProductDetail(productId) {
+  selectedProductId = String(productId || '').trim();
+  if (!selectedProductId) {
+    return;
+  }
+
+  clearProductDetailHeader();
+  clearProductDetailRows();
+  setProductDetailFeedback(t('pd.status.loading'));
+
+  try {
+    const [productResponse, inventoryResponse, storesResponse, shelvesResponse] = await Promise.all([
+      fetch(`${API_BASE}/api/products/${selectedProductId}`),
+      fetch(`${API_BASE}/api/inventory-items`),
+      fetch(`${API_BASE}/api/stores`),
+      fetch(`${API_BASE}/api/shelves`),
+    ]);
+
+    if (!productResponse.ok) {
+      throw new Error(`Failed to load product (${productResponse.status})`);
+    }
+
+    if (!inventoryResponse.ok) {
+      throw new Error(`Failed to load inventory items (${inventoryResponse.status})`);
+    }
+
+    if (!storesResponse.ok) {
+      throw new Error(`Failed to load stores (${storesResponse.status})`);
+    }
+
+    if (!shelvesResponse.ok) {
+      throw new Error(`Failed to load shelves (${shelvesResponse.status})`);
+    }
+
+    const product = await productResponse.json();
+    const inventoryItems = await inventoryResponse.json();
+    storesCache = await storesResponse.json();
+    shelvesCache = await shelvesResponse.json();
+
+    const inventoryForProduct = inventoryItems.filter((item) => item.refProduct === selectedProductId);
+    const storeMap = new Map(storesCache.map((store) => [store.id, store]));
+    const shelfMap = new Map(shelvesCache.map((shelf) => [shelf.id, shelf]));
+    const groupedByStore = buildInventoryByStoreAndShelf(inventoryForProduct);
+
+    pdProductImage.setAttribute('src', product.image || '');
+    pdProductImage.setAttribute('alt', product.name || t('common.productImageAlt'));
+    pdProductName.textContent = product.name || selectedProductId;
+    pdProductColorSwatch.style.backgroundColor = product.color || 'transparent';
+    pdProductColorSwatch.setAttribute('title', product.color || '');
+    pdProductSize.textContent = `${t('pd.header.sizeLabel')}: ${product.size || ''}`;
+    pdProductPrice.textContent = `${t('pd.header.priceLabel')}: ${String(product.price ?? '')}`;
+
+    if (groupedByStore.size === 0) {
+      const row = document.createElement('tr');
+      row.dataset.templateClone = 'true';
+      const cell = document.createElement('td');
+      cell.colSpan = 5;
+      cell.textContent = t('pd.empty.noInventory');
+      row.appendChild(cell);
+      pdInventoryTableBody.appendChild(row);
+    }
+
+    groupedByStore.forEach((storeData, storeId) => {
+      const store = storeMap.get(storeId) || {};
+      const storeRow = pdStoreRowTemplate.cloneNode(true);
+      storeRow.id = '';
+      storeRow.dataset.templateClone = 'true';
+      storeRow.classList.remove('hidden');
+
+      const storeNameCell = storeRow.querySelector('.pd-store-name-cell');
+      const storeStockCell = storeRow.querySelector('.pd-store-stock-cell');
+      const shelvesSelect = storeRow.querySelector('.available-shelves-select');
+      const confirmButton = storeRow.querySelector('.confirm-add-shelf-btn');
+
+      if (storeNameCell) {
+        storeNameCell.textContent = `${store.name || t('pd.store.unnamed')} (${storeId})`;
+      }
+
+      if (storeStockCell) {
+        storeStockCell.textContent = String(storeData.stockCount);
+      }
+
+      if (confirmButton) {
+        confirmButton.disabled = true;
+        confirmButton.addEventListener('click', () => {
+          if (!shelvesSelect) {
+            return;
+          }
+          addInventoryItemFromProductView(selectedProductId, shelvesSelect.value);
+        });
+      }
+
+      pdInventoryTableBody.appendChild(storeRow);
+
+      storeData.shelves.forEach((shelfData, shelfId) => {
+        const shelf = shelfMap.get(shelfId) || {};
+        const shelfRow = pdShelfRowTemplate.cloneNode(true);
+        shelfRow.id = '';
+        shelfRow.dataset.templateClone = 'true';
+        shelfRow.classList.remove('hidden');
+
+        const shelfNameCell = shelfRow.querySelector('.pd-shelf-name-cell');
+        const shelfCountCell = shelfRow.querySelector('.pd-shelf-count-cell');
+
+        if (shelfNameCell) {
+          shelfNameCell.textContent = `${shelf.name || t('pd.shelf.unnamed')} (${shelfId})`;
+        }
+
+        if (shelfCountCell) {
+          shelfCountCell.textContent = String(shelfData.shelfCount);
+        }
+
+        pdInventoryTableBody.appendChild(shelfRow);
+      });
+
+      loadAvailableShelvesForStore(storeId, selectedProductId);
+    });
+
+    showView('product-detail-view');
+    setProductDetailFeedback(t('pd.status.loaded'));
+  } catch (error) {
+    setProductDetailFeedback(`${t('pd.status.loadError')} ${error.message}`, true);
+  }
+}
+
+async function loadAvailableShelvesForStore(storeId, productId) {
+  const storeRows = Array.from(pdInventoryTableBody.querySelectorAll('tr.store-group-row[data-template-clone="true"]'));
+  const targetStoreRow = storeRows.find((row) => {
+    const firstCell = row.querySelector('.pd-store-name-cell');
+    return firstCell && firstCell.textContent.includes(`(${storeId})`);
+  });
+
+  if (!targetStoreRow) {
+    return;
+  }
+
+  const shelvesSelect = targetStoreRow.querySelector('.available-shelves-select');
+  const confirmButton = targetStoreRow.querySelector('.confirm-add-shelf-btn');
+  if (!shelvesSelect || !confirmButton) {
+    return;
+  }
+
+  while (shelvesSelect.firstChild) {
+    shelvesSelect.removeChild(shelvesSelect.firstChild);
+  }
+
+  try {
+    const [shelvesResponse, inventoryResponse] = await Promise.all([
+      fetch(`${API_BASE}/api/shelves`),
+      fetch(`${API_BASE}/api/inventory-items`),
+    ]);
+
+    if (!shelvesResponse.ok) {
+      throw new Error(`Failed to load shelves (${shelvesResponse.status})`);
+    }
+
+    if (!inventoryResponse.ok) {
+      throw new Error(`Failed to load inventory items (${inventoryResponse.status})`);
+    }
+
+    const allShelves = await shelvesResponse.json();
+    const allInventoryItems = await inventoryResponse.json();
+
+    const shelvesForStore = allShelves.filter((shelf) => shelf.refStore === storeId);
+    const occupiedShelfIds = new Set(
+      allInventoryItems
+        .filter((item) => item.refStore === storeId && item.refProduct === productId)
+        .map((item) => item.refShelf),
+    );
+
+    const availableShelves = shelvesForStore.filter((shelf) => !occupiedShelfIds.has(shelf.id));
+
+    const placeholderOption = document.createElement('option');
+    placeholderOption.value = '';
+    placeholderOption.textContent = availableShelves.length > 0
+      ? t('pd.addToShelf.chooseShelf')
+      : t('pd.addToShelf.noneAvailable');
+    shelvesSelect.appendChild(placeholderOption);
+
+    availableShelves.forEach((shelf) => {
+      const option = document.createElement('option');
+      option.value = shelf.id;
+      option.textContent = `${shelf.name || t('pd.shelf.unnamed')} (${shelf.id})`;
+      shelvesSelect.appendChild(option);
+    });
+
+    shelvesSelect.value = '';
+    confirmButton.disabled = availableShelves.length === 0;
+
+    shelvesSelect.addEventListener('change', () => {
+      confirmButton.disabled = !shelvesSelect.value;
+    });
+  } catch (error) {
+    confirmButton.disabled = true;
+    const option = document.createElement('option');
+    option.value = '';
+    option.textContent = t('pd.addToShelf.noneAvailable');
+    shelvesSelect.appendChild(option);
+  }
+}
+
+async function addInventoryItemFromProductView(productId, shelfId) {
+  const normalizedProductId = String(productId || '').trim();
+  const normalizedShelfId = String(shelfId || '').trim();
+
+  if (!normalizedProductId || !normalizedShelfId) {
+    return;
+  }
+
+  try {
+    const shelvesResponse = await fetch(`${API_BASE}/api/shelves`);
+    if (!shelvesResponse.ok) {
+      throw new Error(`Failed to load shelves (${shelvesResponse.status})`);
+    }
+
+    const allShelves = await shelvesResponse.json();
+    const shelf = allShelves.find((entry) => entry.id === normalizedShelfId);
+    if (!shelf || !shelf.refStore) {
+      throw new Error(t('pd.status.addError'));
+    }
+
+    const createResponse = await fetch(`${API_BASE}/api/inventory-items`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        shelfCount: 1,
+        stockCount: 1,
+        refStore: shelf.refStore,
+        refShelf: normalizedShelfId,
+        refProduct: normalizedProductId,
+      }),
+    });
+
+    if (!createResponse.ok) {
+      const errorText = await createResponse.text();
+      throw new Error(errorText || `Create inventory item failed (${createResponse.status})`);
+    }
+
+    await showProductDetail(normalizedProductId);
+    setProductDetailFeedback(t('pd.status.addedToShelf'));
+  } catch (error) {
+    setProductDetailFeedback(`${t('pd.status.addError')} ${error.message}`, true);
   }
 }
 
@@ -583,9 +955,23 @@ function renderProductsTable(products) {
     row.dataset.productId = product.id || '';
 
     const imageCell = createImageCell(product.image, product.name);
+    const productImage = imageCell.querySelector('img');
+    if (productImage) {
+      productImage.classList.add('product-detail-trigger');
+      productImage.style.cursor = 'pointer';
+      productImage.addEventListener('click', () => showProductDetail(product.id));
+    }
 
     const nameCell = document.createElement('td');
-    nameCell.textContent = product.name || '';
+    const nameLink = document.createElement('a');
+    nameLink.href = '#';
+    nameLink.className = 'product-name-link';
+    nameLink.textContent = product.name || '';
+    nameLink.addEventListener('click', (event) => {
+      event.preventDefault();
+      showProductDetail(product.id);
+    });
+    nameCell.appendChild(nameLink);
 
     const colorCell = document.createElement('td');
     colorCell.textContent = product.color || '';
@@ -1845,6 +2231,10 @@ bindIfPresent(cancelEmployeeButton, 'click', closeEmployeeForm);
 bindIfPresent(employeeForm, 'submit', saveEmployee);
 bindIfPresent(themeToggleButton, 'click', toggleTheme);
 bindIfPresent(langToggleButton, 'click', toggleLang);
+bindIfPresent(productDetailBackLink, 'click', (event) => {
+  event.preventDefault();
+  showView('products-view');
+});
 
 applySavedTheme();
 applyTranslations(currentLang);

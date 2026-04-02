@@ -158,6 +158,11 @@ main {
   box-shadow: inset 0 0 0 1px rgba(255, 215, 0, 0.3);
 }
 
+.view-product-detail {
+  border-top-color: var(--color-black);
+  box-shadow: inset 0 0 0 1px rgba(255, 215, 0, 0.32);
+}
+
 .view-stores {
   border-top-color: var(--color-primary);
 }
@@ -212,6 +217,89 @@ button:hover {
 
 .feedback {
   min-height: 20px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.product-name-link {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  text-decoration: underline;
+  font: inherit;
+  cursor: pointer;
+}
+
+.pd-product-header {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 12px;
+  align-items: center;
+  margin: 8px 0 12px;
+}
+
+.pd-product-image {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+}
+
+.pd-product-attributes {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.color-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  display: inline-block;
+}
+
+.store-group-row {
+  background: linear-gradient(90deg, rgba(26, 26, 26, 0.96), rgba(67, 51, 9, 0.94));
+  color: var(--color-white);
+  font-weight: 700;
+}
+
+.shelf-row {
+  background: rgba(255, 215, 0, 0.08);
+}
+
+.add-to-shelf-panel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.add-to-shelf-panel .available-shelves-select {
+  min-width: 220px;
+  max-width: 300px;
+}
+
+.add-to-shelf-panel .confirm-add-shelf-btn {
+  padding: 6px 10px;
+}
+
+.add-to-shelf-panel .confirm-add-shelf-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 table {
@@ -290,5 +378,27 @@ select {
   .navbar-controls {
     width: 100%;
     justify-content: flex-end;
+  }
+
+  .pd-product-header {
+    grid-template-columns: 1fr;
+  }
+
+  .pd-product-image {
+    width: 100%;
+    max-width: 240px;
+    height: auto;
+  }
+
+  .add-to-shelf-panel {
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .add-to-shelf-panel .available-shelves-select {
+    min-width: 0;
+    width: 100%;
+    max-width: none;
   }
 }
