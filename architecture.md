@@ -33,11 +33,14 @@ Interpretation:
 
 ## 3.1 Frontend (HTML/CSS/JavaScript)
 Responsibilities:
-- Render views: Home, Products, Stores, Employees, and Stores Map placeholder.
+- Render views: Home, Products, Product detail, Stores, Employees, and Stores Map placeholder.
 - Render entity tables and Store detail grouped inventory view.
+- Render Product detail inventory grouped by Store with Shelf sub-rows.
 - Execute CRUD actions through fetch-based REST calls to backend endpoints.
 - Render Store detail using DOM logic with hierarchy Store -> Shelves -> InventoryItems.
+- Render Product detail using DOM template-row cloning (Store group row + Shelf row templates).
 - Execute Store detail actions (add Shelf, add InventoryItem, buy product).
+- Execute Product detail action to add InventoryItem to an eligible Shelf in the selected Store group.
 - Apply global UX state and localization behavior:
   - Manchester United design tokens through CSS custom properties.
   - Dark/Light mode toggling by updating `html[data-theme]`.
@@ -306,6 +309,12 @@ The diagram highlights the current implemented production flow.
   - Includes "Entity Model" heading and short application description under the diagram.
 - Products view:
   - Product table CRUD, including color/size/price columns.
+  - Product name/image navigation to dedicated Product detail view.
+- Product detail view:
+  - Product header (image, color swatch, size, price).
+  - Inventory grouped by Store with nested Shelf rows.
+  - Per-Store "Add to shelf" panel with dynamic shelf eligibility filtering.
+  - Back link to return to Products view.
 - Stores view:
   - Store table CRUD and Store detail section for inventory grouping.
 - Store detail (inside Stores view):
