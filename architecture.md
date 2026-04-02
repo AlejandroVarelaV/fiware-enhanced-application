@@ -187,6 +187,10 @@ Important callback rule:
 - Orion runs in a container; localhost inside Orion points to its own container.
 - Subscription callback URL must use host.docker.internal to reach the host machine backend.
 
+Linux Docker networking note:
+- In this project, `host.docker.internal` was not reliable on Linux for Orion callbacks.
+- The working host callback address is the Docker bridge gateway `172.17.0.1`, so Orion posts notifications to `http://172.17.0.1:5000/api/notifications`.
+
 ## 4. Communication Architecture
 
 ## 4.1 REST/HTTP Communication (NGSIv2)
@@ -232,11 +236,25 @@ Current status:
 ## 5.3 Subscription Notification Flow
 1. Backend registers subscriptions in Orion.
 2. Condition occurs in Orion (price change or low stock).
-3. Orion POSTs notification payload to Flask callback endpoint using host.docker.internal.
-4. Flask processes payload and emits Socket.IO event.
-5. Connected browsers receive event and update affected UI state:
-   - Store notifications panel update.
-   - Product price reflected in all relevant views.
+3. Orion POSTs notification payload to the Flask callback endpoint at `http://172.17.0.1:5000/api/notifications`.
+4. Flask receives the notification, logs it, and forwards it to the notification event service when applicable.
+5. Connected browsers will receive event updates once the frontend Socket.IO client is added in a future iteration.
+6. The current backend already preserves the event boundary needed for future live UI updates.
+
+### 5.4 Subscription Flow Diagram
+```mermaid
+sequenceDiagram
+  participant O as Orion Context Broker
+  participant B as Flask Backend
+  participant L as Backend Logs
+  participant F as Future Frontend Socket.IO
+
+  O->>B: POST /api/notifications
+  B->>L: Log received Orion notification
+  B-->>F: Emit Socket.IO event (future)
+```
+
+The diagram highlights the current production flow and the intended next step for browser updates.
 
 ## 5.4 Store Purchase Flow (Buy One Unit)
 1. User clicks Buy product in a Store detail InventoryItem row.
@@ -283,6 +301,7 @@ Failure handling expectations:
 - Retry-safe registration/subscription bootstrapping.
 - Graceful UI degradation if external provider data is temporarily unavailable.
 - Notification endpoint observability via backend logs for troubleshooting.
+- Orion startup failures do not crash the Flask app; the backend continues running even if subscription registration cannot complete.
 
 ## 9. Documentation and Workflow Alignment
 

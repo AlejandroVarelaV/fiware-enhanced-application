@@ -192,6 +192,21 @@ The UI shall support:
 - English and Spanish language switching.
 - Dark mode and Light mode via toggle.
 
+## 4.7 NGSIv2 Subscriptions and Notifications
+
+### FR-22. Orion Subscription Use Cases
+The backend shall automatically register NGSIv2 subscriptions at application startup for:
+- Product price change alerts when `Product.price` changes.
+- Low stock alerts when `InventoryItem.stockCount` falls below the configured threshold.
+
+### FR-23. Notification Delivery Behavior
+Orion shall deliver subscription notifications to the backend notification endpoint.
+The backend shall receive, log, and process those notifications without crashing if Orion is temporarily unavailable.
+
+### FR-24. Real-Time Updates Roadmap
+The backend notification endpoint is the integration point for future Socket.IO delivery to the frontend.
+Real-time browser updates are planned as a next step, but they are not yet part of the current notification flow.
+
 ## 5. Non-Functional Requirements
 
 ## 5.1 Usability and UX
@@ -267,7 +282,8 @@ Backend (Issues 1C, 2A, 2B):
 - Orion integration implemented through OrionService.
 - SubscriptionService implemented and executed at startup to register Orion subscriptions (price change and low stock).
 - Notification callback endpoint implemented at `/api/notifications`.
-- Flask-SocketIO integration implemented in backend and notification forwarding service emits real-time events.
+- Notifications are received and logged successfully.
+- Socket.IO frontend propagation remains pending for a future iteration.
 
 Frontend (Issues 2C, 2D + Store detail completion):
 - Base frontend implemented as vanilla HTML/CSS/JavaScript (no frameworks).
@@ -293,6 +309,12 @@ Purchase flow status:
 - PATCH payload decrements both `shelfCount` and `stockCount` by 1.
 - Values used in PATCH are taken directly from backend InventoryItem fields.
 - After successful PATCH, Store detail view is refreshed using existing fetch/render flow.
+
+Subscription and notification status:
+- Orion subscriptions are created automatically at startup.
+- Duplicate subscriptions are avoided by checking the existing subscription descriptions.
+- Orion unavailability during startup does not stop the application.
+- The working callback URL in the Linux Docker environment is `http://172.17.0.1:5000/api/notifications`.
 
 ### 8.2 Pending Features
 

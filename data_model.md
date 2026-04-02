@@ -87,6 +87,9 @@ Operational/base attributes needed by required views and subscriptions:
 - size: Text
 - price: Number
 
+Subscription trigger note:
+- `price` is monitored by the Orion subscription that detects Product price changes.
+
 Issue 1B backend CRUD fields for Product:
 - name
 - image
@@ -129,6 +132,9 @@ Represents product inventory counts at Store/Shelf granularity.
 ### Attributes
 - shelfCount: Integer (units of the Product in one specific Shelf)
 - stockCount: Integer (total units of the same Product in the Store)
+
+Subscription trigger note:
+- `stockCount` is monitored by the Orion low-stock subscription and triggers alerts when it falls below the configured threshold.
 
 Relationship attributes:
 - refProduct: Relationship -> Product
@@ -290,7 +296,8 @@ This initialization baseline ensures all mandatory UI views and grouping behavio
   - Shelf
   - InventoryItem
 - Validation is implemented for required fields, formats, numeric constraints, and reference existence.
-- Orion subscriptions and backend notification forwarding are implemented.
+- Orion subscriptions are implemented for Product price changes and low stock alerts.
+- Backend notification reception and logging are implemented.
 - Frontend renders Store detail grouped by Shelf and InventoryItem using this model.
 - Purchase flow updates `InventoryItem` by decrementing `shelfCount` and `stockCount` from backend entity values.
 
