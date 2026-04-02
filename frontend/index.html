@@ -297,8 +297,18 @@ classDiagram
           <button id="refresh-store-detail-btn" type="button" data-i18n="storeDetail.refresh">Refresh Detail</button>
           <button id="add-shelf-btn" type="button" data-i18n="storeDetail.addShelf">Add Shelf</button>
           <button id="add-inventory-item-btn" type="button" data-i18n="storeDetail.addInventoryItem">Add Inventory Item</button>
+          <button id="tour-toggle-btn" type="button" data-i18n="tour.toggle.start">Start Virtual Tour</button>
         </div>
         <p id="store-detail-feedback" class="feedback" role="status" aria-live="polite"></p>
+
+        <div id="store-3d-tour-container" class="tour-hidden">
+          <canvas id="store-3d-canvas"></canvas>
+          <div id="tour-product-info" class="tour-hidden">
+            <span id="tour-info-name"></span>
+            <span id="tour-info-shelf-count"></span>
+            <span id="tour-info-stock-count"></span>
+          </div>
+        </div>
 
         <div class="store-detail-top-grid">
           <div class="store-photo-container">

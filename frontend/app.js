@@ -109,6 +109,11 @@ const translations = {
     'storeDetail.meta.color': 'color',
     'storeDetail.meta.shelfCount': 'shelfCount',
     'storeDetail.meta.stockCount': 'stockCount',
+    'tour.toggle.start': 'Start Virtual Tour',
+    'tour.toggle.stop': 'Stop Virtual Tour',
+    'tour.info.name': 'Name',
+    'tour.info.shelfCount': 'Shelf Count',
+    'tour.info.stockCount': 'Stock Count',
     'store.weather.title': 'Weather',
     'store.weather.temperature': 'Temperature',
     'store.weather.humidity': 'Humidity',
@@ -298,6 +303,11 @@ const translations = {
     'storeDetail.meta.color': 'color',
     'storeDetail.meta.shelfCount': 'cantidadEstanteria',
     'storeDetail.meta.stockCount': 'stock',
+    'tour.toggle.start': 'Iniciar recorrido virtual',
+    'tour.toggle.stop': 'Detener recorrido virtual',
+    'tour.info.name': 'Nombre',
+    'tour.info.shelfCount': 'Cantidad en estanteria',
+    'tour.info.stockCount': 'Stock',
     'store.weather.title': 'Clima',
     'store.weather.temperature': 'Temperatura',
     'store.weather.humidity': 'Humedad',
@@ -522,6 +532,13 @@ const storeCapacityInput = document.getElementById('store-capacity');
 const storeDescriptionInput = document.getElementById('store-description');
 const storeSelector = document.getElementById('store-selector');
 const storeDetailFeedback = document.getElementById('store-detail-feedback');
+const storeTourContainer = document.getElementById('store-3d-tour-container');
+const storeTourCanvas = document.getElementById('store-3d-canvas');
+const tourToggleButton = document.getElementById('tour-toggle-btn');
+const tourProductInfo = document.getElementById('tour-product-info');
+const tourInfoName = document.getElementById('tour-info-name');
+const tourInfoShelfCount = document.getElementById('tour-info-shelf-count');
+const tourInfoStockCount = document.getElementById('tour-info-stock-count');
 const storeShelvesContainer = document.getElementById('store-shelves-container');
 const storePhotoImage = document.getElementById('store-photo-image');
 const storeTempIcon = document.getElementById('store-temp-icon');
@@ -566,6 +583,115 @@ let inventoryItemsCache = [];
 let selectedStoreId = '';
 let selectedProductId = '';
 
+const storeTourState = {
+  active: false,
+  three: null,
+  orbitControls: null,
+  scene: null,
+  camera: null,
+  renderer: null,
+  controls: null,
+  raycaster: null,
+  pointer: null,
+  animationFrameId: null,
+  interactiveMeshes: [],
+  resizeHandler: null,
+  mouseMoveHandler: null,
+  mouseLeaveHandler: null,
+  hoveredMesh: null,
+};
+
+function setTourToggleButtonState(isRunning) {
+  if (!tourToggleButton) {
+    return;
+  }
+
+  const translationKey = isRunning ? 'tour.toggle.stop' : 'tour.toggle.start';
+  tourToggleButton.dataset.i18n = translationKey;
+  tourToggleButton.textContent = t(translationKey);
+}
+
+function setTourProductInfoVisibility(isVisible) {
+  if (!tourProductInfo) {
+    return;
+  }
+
+  tourProductInfo.classList.toggle('tour-hidden', !isVisible);
+}
+
+function updateTourProductInfo(mesh) {
+  if (!mesh || !mesh.userData) {
+    if (tourInfoName) {
+      tourInfoName.textContent = '';
+    }
+    if (tourInfoShelfCount) {
+      tourInfoShelfCount.textContent = '';
+    }
+    if (tourInfoStockCount) {
+      tourInfoStockCount.textContent = '';
+    }
+    setTourProductInfoVisibility(false);
+    storeTourState.hoveredMesh = null;
+    return;
+  }
+
+  if (tourInfoName) {
+    tourInfoName.textContent = `${t('tour.info.name')}: ${mesh.userData.productName || ''}`;
+  }
+  if (tourInfoShelfCount) {
+    tourInfoShelfCount.textContent = `${t('tour.info.shelfCount')}: ${mesh.userData.shelfCount}`;
+  }
+  if (tourInfoStockCount) {
+    tourInfoStockCount.textContent = `${t('tour.info.stockCount')}: ${mesh.userData.stockCount}`;
+  }
+
+  storeTourState.hoveredMesh = mesh;
+  setTourProductInfoVisibility(true);
+}
+
+function refreshStoreTourUi() {
+  setTourToggleButtonState(storeTourState.active);
+
+  if (!storeTourState.active) {
+    updateTourProductInfo(null);
+    return;
+  }
+
+  if (storeTourState.hoveredMesh) {
+    updateTourProductInfo(storeTourState.hoveredMesh);
+  }
+}
+
+function disposeStoreTourObject(object) {
+  if (!object) {
+    return;
+  }
+
+  if (object.geometry) {
+    object.geometry.dispose();
+  }
+
+  if (object.material) {
+    if (Array.isArray(object.material)) {
+      object.material.forEach((material) => material && material.dispose && material.dispose());
+    } else if (object.material.dispose) {
+      object.material.dispose();
+    }
+  }
+}
+
+function disposeStoreTourScene(scene) {
+  if (!scene) {
+    return;
+  }
+
+  scene.traverse((object) => {
+    if (object.isMesh) {
+      disposeStoreTourObject(object);
+    }
+  });
+}
+
 function refreshUiLanguageStrings() {
   renderProductsTable(productsCache);
   renderStoresTable(storesCache);
@@ -578,6 +704,8 @@ function refreshUiLanguageStrings() {
   if (!productDetailView.classList.contains('hidden') && selectedProductId) {
     showProductDetail(selectedProductId);
   }
+
+  refreshStoreTourUi();
 }
 
 function bindIfPresent(element, eventName, handler) {
@@ -588,6 +716,13 @@ function bindIfPresent(element, eventName, handler) {
 }
 
 function showView(viewId) {
+  if (viewId !== 'stores-view') {
+    cleanupStoreTour();
+    if (storeTourContainer) {
+      storeTourContainer.classList.add('tour-hidden');
+    }
+  }
+
   views.forEach((view) => {
     if (view.id === viewId) {
       view.classList.remove('hidden');
@@ -1420,10 +1555,22 @@ async function loadStoreDetailData(preferredStoreId = '') {
     renderStoreSelector(preferredStoreId);
     updateStoreDetailPanels(getSelectedStore());
     renderCurrentStoreInventory();
+    if (storeTourState.active) {
+      await initStoreTour(
+        getSelectedStore(),
+        shelvesCache.filter((shelf) => shelf.refStore === selectedStoreId),
+        inventoryItemsCache.filter((item) => item.refStore === selectedStoreId),
+      );
+      if (storeTourContainer) {
+        storeTourContainer.classList.remove('tour-hidden');
+      }
+    }
+    refreshStoreTourUi();
     setStoreDetailFeedback(t('storeDetail.updatedInventory'));
   } catch (error) {
     renderStoreShelves([], [], new Map());
     updateStoreDetailPanels(null);
+    cleanupStoreTour();
     setStoreDetailFeedback(error.message, true);
   }
 }
@@ -1545,6 +1692,262 @@ function updateStoreDetailPanels(store) {
   updateStorePhoto(store);
   updateWeatherDisplay(store ? store.temperature : null, store ? store.relativeHumidity : null);
   renderTweets(store ? store.tweets : []);
+}
+
+async function initStoreTour(storeData, shelvesData, inventoryItems) {
+  if (!storeTourCanvas || !storeData) {
+    return;
+  }
+
+  if (storeTourState.active) {
+    cleanupStoreTour();
+  }
+
+  if (!storeTourState.three) {
+    storeTourState.three = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
+  }
+
+  if (!storeTourState.orbitControls) {
+    const orbitControlsModule = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js');
+    storeTourState.orbitControls = orbitControlsModule.OrbitControls;
+  }
+
+  const THREE = storeTourState.three;
+  const OrbitControls = storeTourState.orbitControls;
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color('#1a1a1a');
+
+  const canvasWidth = storeTourCanvas.clientWidth || storeTourCanvas.parentElement?.clientWidth || 800;
+  const canvasHeight = storeTourCanvas.clientHeight || storeTourCanvas.parentElement?.clientHeight || 500;
+  const camera = new THREE.PerspectiveCamera(60, canvasWidth / canvasHeight, 0.1, 1000);
+  camera.position.set(0, 6, 16);
+
+  const renderer = new THREE.WebGLRenderer({ canvas: storeTourCanvas, antialias: true });
+  renderer.setPixelRatio(window.devicePixelRatio || 1);
+  renderer.setSize(canvasWidth, canvasHeight, false);
+
+  const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 1.8);
+  directionalLight.position.set(8, 14, 10);
+  scene.add(ambientLight, directionalLight);
+
+  const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(60, 30),
+    new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 1, metalness: 0 }),
+  );
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.y = -0.05;
+  scene.add(floor);
+
+  const shelves = Array.isArray(shelvesData) ? shelvesData : [];
+  const inventoryByShelf = new Map();
+  const productById = new Map(productsCache.map((product) => [product.id, product]));
+
+  inventoryItems.forEach((item) => {
+    const shelfItems = inventoryByShelf.get(item.refShelf) || [];
+    shelfItems.push(item);
+    inventoryByShelf.set(item.refShelf, shelfItems);
+  });
+
+  const rackWidth = 5.4;
+  const rackHeight = 2.6;
+  const rackDepth = 1.8;
+  const rackGap = 1.2;
+  const rowOffset = ((shelves.length - 1) * (rackWidth + rackGap)) / 2;
+
+  shelves.forEach((shelf, shelfIndex) => {
+    const rackX = shelfIndex * (rackWidth + rackGap) - rowOffset;
+    const rackMaterial = new THREE.MeshStandardMaterial({ color: 0x7a4f2f, roughness: 0.85 });
+    const rack = new THREE.Mesh(new THREE.BoxGeometry(rackWidth, rackHeight, rackDepth), rackMaterial);
+    rack.position.set(rackX, rackHeight / 2, 0);
+    scene.add(rack);
+
+    const shelfItems = inventoryByShelf.get(shelf.id) || [];
+    const itemSpacing = shelfItems.length > 0 ? rackWidth / (shelfItems.length + 1) : 0;
+
+    shelfItems.forEach((item, itemIndex) => {
+      const product = productById.get(item.refProduct) || {};
+      const productColor = new THREE.Color();
+
+      try {
+        productColor.set(product.color || '#d0a060');
+      } catch (error) {
+        productColor.set('#d0a060');
+      }
+
+      const shelfCount = Number(item.shelfCount || 0);
+      const stockCount = Number(item.stockCount || 0);
+      const productHeight = Math.max(0.35, Math.min(2.0, 0.3 + shelfCount * 0.15));
+      const productWidth = 0.4;
+      const productDepth = 0.4;
+      const productGeometry = new THREE.BoxGeometry(productWidth, productHeight, productDepth);
+      const productMaterial = new THREE.MeshStandardMaterial({ color: productColor, roughness: 0.65, metalness: 0.08 });
+      const productMesh = new THREE.Mesh(productGeometry, productMaterial);
+      const productOffset = shelfItems.length > 0 ? (-rackWidth / 2) + itemSpacing * (itemIndex + 1) : 0;
+
+      productMesh.position.set(rackX + productOffset, rackHeight + (productHeight / 2) - 0.08, 0);
+      productMesh.userData = {
+        productName: product.name || item.refProduct || '',
+        shelfCount,
+        stockCount,
+      };
+      scene.add(productMesh);
+      storeTourState.interactiveMeshes.push(productMesh);
+    });
+  });
+
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.target.set(0, 1.3, 0);
+  controls.update();
+
+  const raycaster = new THREE.Raycaster();
+  const pointer = new THREE.Vector2();
+
+  const updateRendererSize = () => {
+    const width = storeTourCanvas.clientWidth || storeTourCanvas.parentElement?.clientWidth || 800;
+    const height = storeTourCanvas.clientHeight || storeTourCanvas.parentElement?.clientHeight || 500;
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+    renderer.setSize(width, height, false);
+  };
+
+  const handleMouseMove = (event) => {
+    const rect = storeTourCanvas.getBoundingClientRect();
+    if (!rect.width || !rect.height) {
+      return;
+    }
+
+    pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    pointer.y = -(((event.clientY - rect.top) / rect.height) * 2 - 1);
+    raycaster.setFromCamera(pointer, camera);
+
+    const intersections = raycaster.intersectObjects(storeTourState.interactiveMeshes, false);
+    if (intersections.length > 0) {
+      storeTourCanvas.style.cursor = 'pointer';
+      updateTourProductInfo(intersections[0].object);
+    } else {
+      storeTourCanvas.style.cursor = 'default';
+      updateTourProductInfo(null);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    storeTourCanvas.style.cursor = 'default';
+    updateTourProductInfo(null);
+  };
+
+  const animate = () => {
+    storeTourState.animationFrameId = window.requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+  };
+
+  storeTourState.active = true;
+  storeTourState.scene = scene;
+  storeTourState.camera = camera;
+  storeTourState.renderer = renderer;
+  storeTourState.controls = controls;
+  storeTourState.raycaster = raycaster;
+  storeTourState.pointer = pointer;
+  storeTourState.resizeHandler = updateRendererSize;
+  storeTourState.mouseMoveHandler = handleMouseMove;
+  storeTourState.mouseLeaveHandler = handleMouseLeave;
+  storeTourState.hoveredMesh = null;
+
+  storeTourCanvas.addEventListener('mousemove', handleMouseMove);
+  storeTourCanvas.addEventListener('mouseleave', handleMouseLeave);
+  window.addEventListener('resize', updateRendererSize);
+
+  updateRendererSize();
+  animate();
+  setTourToggleButtonState(true);
+}
+
+function cleanupStoreTour() {
+  if (!storeTourState.active && !storeTourState.renderer) {
+    setTourToggleButtonState(false);
+    updateTourProductInfo(null);
+    return;
+  }
+
+  if (storeTourCanvas && storeTourState.mouseMoveHandler) {
+    storeTourCanvas.removeEventListener('mousemove', storeTourState.mouseMoveHandler);
+  }
+
+  if (storeTourCanvas && storeTourState.mouseLeaveHandler) {
+    storeTourCanvas.removeEventListener('mouseleave', storeTourState.mouseLeaveHandler);
+  }
+
+  if (storeTourState.resizeHandler) {
+    window.removeEventListener('resize', storeTourState.resizeHandler);
+  }
+
+  if (storeTourState.animationFrameId) {
+    window.cancelAnimationFrame(storeTourState.animationFrameId);
+    storeTourState.animationFrameId = null;
+  }
+
+  if (storeTourState.controls) {
+    storeTourState.controls.dispose();
+    storeTourState.controls = null;
+  }
+
+  if (storeTourState.renderer) {
+    storeTourState.renderer.dispose();
+    storeTourState.renderer = null;
+  }
+
+  disposeStoreTourScene(storeTourState.scene);
+
+  if (storeTourState.scene) {
+    while (storeTourState.scene.children.length > 0) {
+      storeTourState.scene.remove(storeTourState.scene.children[0]);
+    }
+  }
+
+  storeTourState.active = false;
+  storeTourState.scene = null;
+  storeTourState.camera = null;
+  storeTourState.raycaster = null;
+  storeTourState.pointer = null;
+  storeTourState.interactiveMeshes = [];
+  storeTourState.resizeHandler = null;
+  storeTourState.mouseMoveHandler = null;
+  storeTourState.mouseLeaveHandler = null;
+  storeTourState.hoveredMesh = null;
+
+  if (storeTourCanvas) {
+    storeTourCanvas.style.cursor = 'default';
+  }
+
+  setTourToggleButtonState(false);
+  updateTourProductInfo(null);
+}
+
+async function toggleStoreTour() {
+  if (storeTourState.active) {
+    cleanupStoreTour();
+    if (storeTourContainer) {
+      storeTourContainer.classList.add('tour-hidden');
+    }
+    return;
+  }
+
+  const currentStore = getSelectedStore();
+  if (!currentStore) {
+    setStoreDetailFeedback(t('storeDetail.empty.selectStore'), true);
+    return;
+  }
+
+  const shelvesForStore = shelvesCache.filter((shelf) => shelf.refStore === currentStore.id);
+  const inventoryForStore = inventoryItemsCache.filter((item) => item.refStore === currentStore.id);
+
+  await initStoreTour(currentStore, shelvesForStore, inventoryForStore);
+
+  if (storeTourContainer) {
+    storeTourContainer.classList.remove('tour-hidden');
+  }
 }
 
 function renderStoreSelector(preferredStoreId) {
@@ -1899,13 +2302,24 @@ async function addInventoryItemToCurrentStore() {
   }
 }
 
-function handleStoreSelectionChange() {
+async function handleStoreSelectionChange() {
   if (!storeSelector) {
     return;
   }
   selectedStoreId = storeSelector.value;
   updateStoreDetailPanels(getSelectedStore());
   renderCurrentStoreInventory();
+  if (storeTourState.active) {
+    await initStoreTour(
+      getSelectedStore(),
+      shelvesCache.filter((shelf) => shelf.refStore === selectedStoreId),
+      inventoryItemsCache.filter((item) => item.refStore === selectedStoreId),
+    );
+    if (storeTourContainer) {
+      storeTourContainer.classList.remove('tour-hidden');
+    }
+  }
+  refreshStoreTourUi();
 }
 
 function setEmployeesFeedback(message, isError = false) {
@@ -2367,6 +2781,7 @@ bindIfPresent(storeSelector, 'change', handleStoreSelectionChange);
 bindIfPresent(addShelfButton, 'click', addShelfToCurrentStore);
 bindIfPresent(addInventoryItemButton, 'click', addInventoryItemToCurrentStore);
 bindIfPresent(refreshStoreDetailButton, 'click', () => loadStoreDetailData(selectedStoreId));
+bindIfPresent(tourToggleButton, 'click', toggleStoreTour);
 
 bindIfPresent(createEmployeeButton, 'click', openCreateEmployeeForm);
 bindIfPresent(refreshEmployeesButton, 'click', loadEmployees);
