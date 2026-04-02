@@ -90,6 +90,10 @@ Operational/base attributes needed by required views and subscriptions:
 Subscription trigger note:
 - `price` is monitored by the Orion subscription that detects Product price changes.
 
+### Product Trigger Behavior
+- Attribute: `price`
+- Trigger: any `price` change triggers notification generation.
+
 Issue 1B backend CRUD fields for Product:
 - name
 - image
@@ -135,6 +139,10 @@ Represents product inventory counts at Store/Shelf granularity.
 
 Subscription trigger note:
 - `stockCount` is monitored by the Orion low-stock subscription and triggers alerts when it falls below the configured threshold.
+
+### InventoryItem Trigger Behavior
+- Attribute: `stockCount`
+- Trigger: `stockCount < 5` triggers low-stock alert notification.
 
 Relationship attributes:
 - refProduct: Relationship -> Product
@@ -185,6 +193,12 @@ Store attributes temperature, relativeHumidity, and tweets are externally provid
 - Resolved from tutorial external context providers.
 - Treated as standard Store attributes at query/render time.
 - `tweets` shall be modeled as `StructuredValue` to preserve provider payload structure.
+
+## 5.1 Subscription Trigger Implementation Clarification
+
+Trigger behavior for `Product.price` and `InventoryItem.stockCount` is implemented through Orion subscriptions.
+These trigger conditions are not hardcoded as entity-state business rules in backend CRUD logic.
+The backend receives Orion callback payloads and forwards notifications in real time.
 
 ## 6. NGSIv2-Oriented Attribute Typing Guidance
 
@@ -304,3 +318,15 @@ This initialization baseline ensures all mandatory UI views and grouping behavio
 ### 10.2 Pending
 
 - Frontend real-time notification consumption and advanced visualization layers do not alter this entity model and remain outside current implemented UI scope.
+
+## 11. Project-Structure Alignment Note (Issue #16)
+
+This issue introduces no data-model/entity-schema changes.
+
+Current implemented state alignment:
+
+- Repository now includes root `AGENTS.md` and root `README.md` to standardize workflow and operational usage.
+- `docker-compose.yml` now includes application runtime services (`backend`, `frontend`) in addition to FIWARE infrastructure.
+- Environment and ignore baselines were aligned at repository root (`.env`, `.gitignore`).
+
+Entity definitions, attributes, relationships, and constraints in this document remain unchanged by this issue.

@@ -217,6 +217,28 @@ Current status:
 - Backend Socket.IO emission is implemented.
 - Frontend Socket.IO client consumption is pending.
 
+Update:
+- Frontend Socket.IO client consumption is now implemented.
+- Real-time notification delivery is active from Orion to backend to connected browsers.
+
+## Orion -> Backend -> Frontend Real-Time Flow
+
+Full real-time pipeline:
+1. Orion detects subscribed entity changes (`Product.price` or low `InventoryItem.stockCount`).
+2. Orion sends HTTP POST callback to backend `/api/notifications`.
+3. Backend receives and processes the payload.
+4. Backend emits Socket.IO event `orion_notification`.
+5. Frontend receives the event and updates the notifications UI.
+
+Text diagram:
+
+Orion -> Flask API -> Socket.IO -> Browser UI
+
+Implementation details:
+- Backend real-time channel is implemented with Flask-SocketIO.
+- Event name used for notification forwarding is `orion_notification`.
+- Frontend Socket.IO client uses compatible `4.7.x` version.
+
 ## 5. Data Flows
 
 ## 5.1 Entity Update Flow (User-Initiated)
@@ -238,8 +260,8 @@ Current status:
 2. Condition occurs in Orion (price change or low stock).
 3. Orion POSTs notification payload to the Flask callback endpoint at `http://172.17.0.1:5000/api/notifications`.
 4. Flask receives the notification, logs it, and forwards it to the notification event service when applicable.
-5. Connected browsers will receive event updates once the frontend Socket.IO client is added in a future iteration.
-6. The current backend already preserves the event boundary needed for future live UI updates.
+5. Backend emits `orion_notification` through Flask-SocketIO.
+6. Connected browsers receive the event in real time and update the notification panel.
 
 ### 5.4 Subscription Flow Diagram
 ```mermaid
@@ -247,14 +269,14 @@ sequenceDiagram
   participant O as Orion Context Broker
   participant B as Flask Backend
   participant L as Backend Logs
-  participant F as Future Frontend Socket.IO
+  participant F as Frontend Socket.IO Client
 
   O->>B: POST /api/notifications
   B->>L: Log received Orion notification
-  B-->>F: Emit Socket.IO event (future)
+  B-->>F: Emit Socket.IO event orion_notification
 ```
 
-The diagram highlights the current production flow and the intended next step for browser updates.
+The diagram highlights the current implemented production flow.
 
 ## 5.4 Store Purchase Flow (Buy One Unit)
 1. User clicks Buy product in a Store detail InventoryItem row.
@@ -296,6 +318,29 @@ Startup sequence requirements:
 3. Execute backend startup tasks:
   - Register subscriptions.
 4. Open frontend UI.
+
+## 9. Project Structure and Deployment Baseline (Issue #16)
+
+The real implemented repository/deployment baseline includes:
+
+- Root governance and onboarding docs: `AGENTS.md` and root `README.md`.
+- Docker Compose application services:
+  - `backend`: Flask + Flask-SocketIO containerized runtime exposed at `localhost:5000`.
+  - `frontend`: static nginx service exposed at `localhost:3000`.
+- Existing FIWARE infra services remain active:
+  - `orion-v2`
+  - `mongo-db`
+  - `tutorial`
+
+Port allocation in current baseline:
+
+- Frontend app: 3000
+- Backend API: 5000
+- Orion: 1026
+- Tutorial app: 3002
+- Tutorial dummy devices: 3001
+
+This issue modifies structure and deployment wiring only; it does not change domain/business logic.
 
 Failure handling expectations:
 - Retry-safe registration/subscription bootstrapping.
