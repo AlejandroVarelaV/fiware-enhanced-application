@@ -1,8 +1,415 @@
 const API_BASE = 'http://localhost:5000';
 const SOCKET_BASE = 'http://localhost:5000';
 
+const STORAGE_THEME_KEY = 'us_theme';
+const STORAGE_LANG_KEY = 'us_lang';
+
+const translations = {
+  en: {
+    'app.title': 'United Supermarket',
+    'brand.name': 'United Supermarket',
+    'header.dashboard': 'Smart Retail Dashboard',
+    'nav.home': 'Home',
+    'nav.products': 'Products',
+    'nav.stores': 'Stores',
+    'nav.employees': 'Employees',
+    'nav.storesMap': 'Stores Map',
+    'toggle.theme': 'Toggle theme',
+    'toggle.langBtn': 'ES / EN',
+    'home.title': 'Home',
+    'home.entityModel': 'Entity Model',
+    'home.subtitle': 'United Supermarket - FIWARE NGSIv2-powered supermarket management',
+    'products.title': 'Products',
+    'products.create': 'Create Product',
+    'products.refresh': 'Refresh',
+    'products.table.image': 'Image',
+    'products.table.name': 'Name',
+    'products.table.color': 'Color',
+    'products.table.size': 'Size',
+    'products.table.price': 'Price',
+    'products.table.actions': 'Actions',
+    'products.empty.loaded': 'No products loaded.',
+    'products.empty.found': 'No products found.',
+    'products.form.createTitle': 'Create Product',
+    'products.form.editTitle': 'Edit Product',
+    'products.form.imageUrl': 'Image URL',
+    'products.form.name': 'Name',
+    'products.form.colorHex': 'Color (hex)',
+    'products.form.size': 'Size',
+    'products.form.price': 'Price',
+    'products.form.save': 'Save',
+    'products.form.cancel': 'Cancel',
+    'stores.title': 'Stores',
+    'stores.create': 'Create Store',
+    'stores.refresh': 'Refresh',
+    'stores.table.image': 'Image',
+    'stores.table.name': 'Name',
+    'stores.table.countryCode': 'Country Code',
+    'stores.table.temperature': 'Temperature',
+    'stores.table.relativeHumidity': 'Relative Humidity',
+    'stores.table.actions': 'Actions',
+    'stores.empty.loaded': 'No stores loaded.',
+    'stores.empty.found': 'No stores found.',
+    'stores.form.createTitle': 'Create Store',
+    'stores.form.editTitle': 'Edit Store',
+    'stores.form.imageUrl': 'Image URL',
+    'stores.form.name': 'Name',
+    'stores.form.countryCode': 'Country Code',
+    'stores.form.temperature': 'Temperature',
+    'stores.form.relativeHumidity': 'Relative Humidity',
+    'stores.form.addressStreet': 'Address Street',
+    'stores.form.addressCity': 'Address City',
+    'stores.form.addressZip': 'Address ZIP',
+    'stores.form.locationLng': 'Location Longitude',
+    'stores.form.locationLat': 'Location Latitude',
+    'stores.form.url': 'URL',
+    'stores.form.telephone': 'Telephone',
+    'stores.form.capacity': 'Capacity',
+    'stores.form.description': 'Description',
+    'stores.form.save': 'Save',
+    'stores.form.cancel': 'Cancel',
+    'storeDetail.title': 'Store Detail',
+    'storeDetail.selectorAria': 'Select store',
+    'storeDetail.refresh': 'Refresh Detail',
+    'storeDetail.addShelf': 'Add Shelf',
+    'storeDetail.addInventoryItem': 'Add Inventory Item',
+    'storeDetail.empty.noStoresOption': 'No stores available',
+    'storeDetail.empty.noStoresForDetail': 'No stores available for detail view.',
+    'storeDetail.loadingInventory': 'Loading store inventory view...',
+    'storeDetail.updatedInventory': 'Store inventory view updated.',
+    'storeDetail.empty.selectStore': 'Select a store to view shelves and inventory.',
+    'storeDetail.empty.noShelves': 'No shelves found for the selected store.',
+    'storeDetail.shelf.unnamed': 'Unnamed shelf',
+    'storeDetail.store.unnamed': 'Unnamed store',
+    'storeDetail.metrics.productsCount': '{count} product(s)',
+    'storeDetail.empty.noInventoryOnShelf': 'No inventory items on this shelf.',
+    'storeDetail.buy': 'Buy product',
+    'storeDetail.meta.price': 'price',
+    'storeDetail.meta.size': 'size',
+    'storeDetail.meta.color': 'color',
+    'storeDetail.meta.shelfCount': 'shelfCount',
+    'storeDetail.meta.stockCount': 'stockCount',
+    'notifications.title': 'Notifications',
+    'notifications.empty': 'No notifications yet.',
+    'notifications.orionTitle': 'Orion notification',
+    'notifications.subscriptionPrefix': 'Subscription {id}: {summary}',
+    'notifications.noEntityData': 'No entity data included',
+    'notifications.unknownEntity': 'unknown entity',
+    'employees.title': 'Employees',
+    'employees.create': 'Create Employee',
+    'employees.refresh': 'Refresh',
+    'employees.table.image': 'Image',
+    'employees.table.name': 'Name',
+    'employees.table.category': 'Category',
+    'employees.table.skills': 'Skills',
+    'employees.table.actions': 'Actions',
+    'employees.empty.loaded': 'No employees loaded.',
+    'employees.empty.found': 'No employees found.',
+    'employees.form.createTitle': 'Create Employee',
+    'employees.form.editTitle': 'Edit Employee',
+    'employees.form.imageUrl': 'Image URL',
+    'employees.form.name': 'Name',
+    'employees.form.category': 'Category',
+    'employees.form.skills': 'Skills (comma separated)',
+    'employees.form.email': 'Email',
+    'employees.form.dateOfContract': 'Date of Contract (ISO 8601)',
+    'employees.form.datePlaceholder': '2026-03-30T10:00:00Z',
+    'employees.form.username': 'Username',
+    'employees.form.password': 'Password',
+    'employees.form.storeId': 'Store ID',
+    'employees.form.save': 'Save',
+    'employees.form.cancel': 'Cancel',
+    'storesMap.title': 'Stores Map',
+    'storesMap.placeholder': 'Stores Map will be implemented in Issue 8.',
+    'common.edit': 'Edit',
+    'common.delete': 'Delete',
+    'common.entityImageAlt': 'entity image',
+    'common.productImageAlt': 'product image',
+    'status.loadingProducts': 'Loading products...',
+    'status.loadedProducts': 'Loaded {count} product(s).',
+    'status.productSelectedMissing': 'Selected product no longer exists.',
+    'status.productUpdated': 'Product updated.',
+    'status.productCreated': 'Product created.',
+    'status.productDeleted': 'Product deleted.',
+    'status.loadingStores': 'Loading stores...',
+    'status.loadedStores': 'Loaded {count} store(s).',
+    'status.storeDetailUnavailable': 'Unable to load store detail view.',
+    'status.storeSelectedMissing': 'Selected store no longer exists.',
+    'status.storeUpdated': 'Store updated.',
+    'status.storeCreated': 'Store created.',
+    'status.storeDeleted': 'Store deleted.',
+    'status.noUnitsOnShelf': 'No units available on this shelf.',
+    'status.noStockInStore': 'No stock available for this product in the store.',
+    'status.productPurchased': 'Product purchased. Counts updated.',
+    'status.selectStoreFirst': 'Select a store first.',
+    'status.maxCapacityPositiveInt': 'maxCapacity must be a positive integer.',
+    'status.shelfCreated': 'Shelf created.',
+    'status.createShelfFirst': 'Create a shelf before adding inventory items.',
+    'status.noProductsAvailableCreateFirst': 'No products available. Create a product first.',
+    'status.invalidShelfId': 'Invalid shelf id.',
+    'status.allProductsAlreadyOnShelf': 'All products are already present on this shelf.',
+    'status.invalidProductId': 'Invalid product id.',
+    'status.shelfCountNonNegativeInt': 'shelfCount must be a non-negative integer.',
+    'status.inventoryItemCreated': 'InventoryItem created.',
+    'status.loadingEmployees': 'Loading employees...',
+    'status.loadedEmployees': 'Loaded {count} employee(s).',
+    'status.employeeSelectedMissing': 'Selected employee no longer exists.',
+    'status.employeeUpdated': 'Employee updated.',
+    'status.employeeCreated': 'Employee created.',
+    'status.employeeDeleted': 'Employee deleted.',
+    'confirm.deleteProduct': 'Delete this product?',
+    'confirm.deleteStore': 'Delete this store?',
+    'confirm.deleteEmployee': 'Delete this employee?',
+    'prompt.shelfName': 'Shelf name:',
+    'prompt.shelfMaxCapacity': 'Shelf maxCapacity (positive integer):',
+    'prompt.chooseShelfId': 'Choose shelf id:\n{options}',
+    'prompt.chooseProductId': 'Choose product id:\n{options}',
+    'prompt.shelfCount': 'shelfCount (non-negative integer):'
+  },
+  es: {
+    'app.title': 'United Supermarket',
+    'brand.name': 'United Supermarket',
+    'header.dashboard': 'Panel de Retail Inteligente',
+    'nav.home': 'Inicio',
+    'nav.products': 'Productos',
+    'nav.stores': 'Tiendas',
+    'nav.employees': 'Empleados',
+    'nav.storesMap': 'Mapa de Tiendas',
+    'toggle.theme': 'Cambiar tema',
+    'toggle.langBtn': 'ES / EN',
+    'home.title': 'Inicio',
+    'home.entityModel': 'Modelo de Entidades',
+    'home.subtitle': 'United Supermarket - gestion de supermercados basada en FIWARE NGSIv2',
+    'products.title': 'Productos',
+    'products.create': 'Crear Producto',
+    'products.refresh': 'Actualizar',
+    'products.table.image': 'Imagen',
+    'products.table.name': 'Nombre',
+    'products.table.color': 'Color',
+    'products.table.size': 'Talla',
+    'products.table.price': 'Precio',
+    'products.table.actions': 'Acciones',
+    'products.empty.loaded': 'No hay productos cargados.',
+    'products.empty.found': 'No se encontraron productos.',
+    'products.form.createTitle': 'Crear Producto',
+    'products.form.editTitle': 'Editar Producto',
+    'products.form.imageUrl': 'URL de Imagen',
+    'products.form.name': 'Nombre',
+    'products.form.colorHex': 'Color (hex)',
+    'products.form.size': 'Talla',
+    'products.form.price': 'Precio',
+    'products.form.save': 'Guardar',
+    'products.form.cancel': 'Cancelar',
+    'stores.title': 'Tiendas',
+    'stores.create': 'Crear Tienda',
+    'stores.refresh': 'Actualizar',
+    'stores.table.image': 'Imagen',
+    'stores.table.name': 'Nombre',
+    'stores.table.countryCode': 'Codigo de Pais',
+    'stores.table.temperature': 'Temperatura',
+    'stores.table.relativeHumidity': 'Humedad Relativa',
+    'stores.table.actions': 'Acciones',
+    'stores.empty.loaded': 'No hay tiendas cargadas.',
+    'stores.empty.found': 'No se encontraron tiendas.',
+    'stores.form.createTitle': 'Crear Tienda',
+    'stores.form.editTitle': 'Editar Tienda',
+    'stores.form.imageUrl': 'URL de Imagen',
+    'stores.form.name': 'Nombre',
+    'stores.form.countryCode': 'Codigo de Pais',
+    'stores.form.temperature': 'Temperatura',
+    'stores.form.relativeHumidity': 'Humedad Relativa',
+    'stores.form.addressStreet': 'Calle',
+    'stores.form.addressCity': 'Ciudad',
+    'stores.form.addressZip': 'Codigo Postal',
+    'stores.form.locationLng': 'Longitud',
+    'stores.form.locationLat': 'Latitud',
+    'stores.form.url': 'URL',
+    'stores.form.telephone': 'Telefono',
+    'stores.form.capacity': 'Capacidad',
+    'stores.form.description': 'Descripcion',
+    'stores.form.save': 'Guardar',
+    'stores.form.cancel': 'Cancelar',
+    'storeDetail.title': 'Detalle de Tienda',
+    'storeDetail.selectorAria': 'Seleccionar tienda',
+    'storeDetail.refresh': 'Actualizar Detalle',
+    'storeDetail.addShelf': 'Anadir Estanteria',
+    'storeDetail.addInventoryItem': 'Anadir Item de Inventario',
+    'storeDetail.empty.noStoresOption': 'No hay tiendas disponibles',
+    'storeDetail.empty.noStoresForDetail': 'No hay tiendas disponibles para la vista de detalle.',
+    'storeDetail.loadingInventory': 'Cargando vista de inventario de la tienda...',
+    'storeDetail.updatedInventory': 'Vista de inventario actualizada.',
+    'storeDetail.empty.selectStore': 'Selecciona una tienda para ver estanterias e inventario.',
+    'storeDetail.empty.noShelves': 'No hay estanterias para la tienda seleccionada.',
+    'storeDetail.shelf.unnamed': 'Estanteria sin nombre',
+    'storeDetail.store.unnamed': 'Tienda sin nombre',
+    'storeDetail.metrics.productsCount': '{count} producto(s)',
+    'storeDetail.empty.noInventoryOnShelf': 'No hay items de inventario en esta estanteria.',
+    'storeDetail.buy': 'Comprar producto',
+    'storeDetail.meta.price': 'precio',
+    'storeDetail.meta.size': 'talla',
+    'storeDetail.meta.color': 'color',
+    'storeDetail.meta.shelfCount': 'cantidadEstanteria',
+    'storeDetail.meta.stockCount': 'stock',
+    'notifications.title': 'Notificaciones',
+    'notifications.empty': 'Aun no hay notificaciones.',
+    'notifications.orionTitle': 'Notificacion de Orion',
+    'notifications.subscriptionPrefix': 'Suscripcion {id}: {summary}',
+    'notifications.noEntityData': 'No se incluyeron datos de entidad',
+    'notifications.unknownEntity': 'entidad desconocida',
+    'employees.title': 'Empleados',
+    'employees.create': 'Crear Empleado',
+    'employees.refresh': 'Actualizar',
+    'employees.table.image': 'Imagen',
+    'employees.table.name': 'Nombre',
+    'employees.table.category': 'Categoria',
+    'employees.table.skills': 'Habilidades',
+    'employees.table.actions': 'Acciones',
+    'employees.empty.loaded': 'No hay empleados cargados.',
+    'employees.empty.found': 'No se encontraron empleados.',
+    'employees.form.createTitle': 'Crear Empleado',
+    'employees.form.editTitle': 'Editar Empleado',
+    'employees.form.imageUrl': 'URL de Imagen',
+    'employees.form.name': 'Nombre',
+    'employees.form.category': 'Categoria',
+    'employees.form.skills': 'Habilidades (separadas por comas)',
+    'employees.form.email': 'Correo',
+    'employees.form.dateOfContract': 'Fecha de Contrato (ISO 8601)',
+    'employees.form.datePlaceholder': '2026-03-30T10:00:00Z',
+    'employees.form.username': 'Usuario',
+    'employees.form.password': 'Contrasena',
+    'employees.form.storeId': 'ID de Tienda',
+    'employees.form.save': 'Guardar',
+    'employees.form.cancel': 'Cancelar',
+    'storesMap.title': 'Mapa de Tiendas',
+    'storesMap.placeholder': 'El Mapa de Tiendas se implementara en la Issue 8.',
+    'common.edit': 'Editar',
+    'common.delete': 'Eliminar',
+    'common.entityImageAlt': 'imagen de entidad',
+    'common.productImageAlt': 'imagen de producto',
+    'status.loadingProducts': 'Cargando productos...',
+    'status.loadedProducts': 'Se cargaron {count} producto(s).',
+    'status.productSelectedMissing': 'El producto seleccionado ya no existe.',
+    'status.productUpdated': 'Producto actualizado.',
+    'status.productCreated': 'Producto creado.',
+    'status.productDeleted': 'Producto eliminado.',
+    'status.loadingStores': 'Cargando tiendas...',
+    'status.loadedStores': 'Se cargaron {count} tienda(s).',
+    'status.storeDetailUnavailable': 'No se pudo cargar la vista de detalle de tienda.',
+    'status.storeSelectedMissing': 'La tienda seleccionada ya no existe.',
+    'status.storeUpdated': 'Tienda actualizada.',
+    'status.storeCreated': 'Tienda creada.',
+    'status.storeDeleted': 'Tienda eliminada.',
+    'status.noUnitsOnShelf': 'No hay unidades disponibles en esta estanteria.',
+    'status.noStockInStore': 'No hay stock disponible para este producto en la tienda.',
+    'status.productPurchased': 'Producto comprado. Cantidades actualizadas.',
+    'status.selectStoreFirst': 'Selecciona primero una tienda.',
+    'status.maxCapacityPositiveInt': 'maxCapacity debe ser un entero positivo.',
+    'status.shelfCreated': 'Estanteria creada.',
+    'status.createShelfFirst': 'Crea una estanteria antes de anadir inventario.',
+    'status.noProductsAvailableCreateFirst': 'No hay productos disponibles. Crea primero un producto.',
+    'status.invalidShelfId': 'ID de estanteria invalido.',
+    'status.allProductsAlreadyOnShelf': 'Todos los productos ya estan en esta estanteria.',
+    'status.invalidProductId': 'ID de producto invalido.',
+    'status.shelfCountNonNegativeInt': 'shelfCount debe ser un entero no negativo.',
+    'status.inventoryItemCreated': 'Item de inventario creado.',
+    'status.loadingEmployees': 'Cargando empleados...',
+    'status.loadedEmployees': 'Se cargaron {count} empleado(s).',
+    'status.employeeSelectedMissing': 'El empleado seleccionado ya no existe.',
+    'status.employeeUpdated': 'Empleado actualizado.',
+    'status.employeeCreated': 'Empleado creado.',
+    'status.employeeDeleted': 'Empleado eliminado.',
+    'confirm.deleteProduct': 'Eliminar este producto?',
+    'confirm.deleteStore': 'Eliminar esta tienda?',
+    'confirm.deleteEmployee': 'Eliminar este empleado?',
+    'prompt.shelfName': 'Nombre de la estanteria:',
+    'prompt.shelfMaxCapacity': 'maxCapacity de la estanteria (entero positivo):',
+    'prompt.chooseShelfId': 'Elige ID de estanteria:\n{options}',
+    'prompt.chooseProductId': 'Elige ID de producto:\n{options}',
+    'prompt.shelfCount': 'shelfCount (entero no negativo):'
+  }
+};
+
+let currentLang = localStorage.getItem(STORAGE_LANG_KEY) || 'en';
+
+function t(key, vars = {}) {
+  const langTable = translations[currentLang] || translations.en;
+  let text = langTable[key] || translations.en[key] || key;
+  Object.entries(vars).forEach(([name, value]) => {
+    text = text.replace(`{${name}}`, String(value));
+  });
+  return text;
+}
+
+function applyTranslations(lang) {
+  currentLang = lang === 'es' ? 'es' : 'en';
+  document.documentElement.lang = currentLang;
+  localStorage.setItem(STORAGE_LANG_KEY, currentLang);
+
+  const title = document.querySelector('title[data-i18n]');
+  if (title) {
+    title.textContent = t(title.dataset.i18n);
+  }
+
+  document.querySelectorAll('[data-i18n]').forEach((element) => {
+    const key = element.dataset.i18n;
+    element.textContent = t(key);
+  });
+
+  document.querySelectorAll('[data-i18n-placeholder]').forEach((element) => {
+    const key = element.dataset.i18nPlaceholder;
+    element.setAttribute('placeholder', t(key));
+  });
+
+  document.querySelectorAll('[data-i18n-aria-label]').forEach((element) => {
+    const key = element.dataset.i18nAriaLabel;
+    element.setAttribute('aria-label', t(key));
+  });
+}
+
+function toggleLang() {
+  applyTranslations(currentLang === 'en' ? 'es' : 'en');
+  refreshUiLanguageStrings();
+}
+
+function updateThemeIcon() {
+  const icon = document.querySelector('#theme-toggle i');
+  if (!icon) {
+    return;
+  }
+  const darkEnabled = document.documentElement.dataset.theme === 'dark';
+  if (darkEnabled) {
+    icon.classList.remove('fa-moon');
+    icon.classList.add('fa-sun');
+  } else {
+    icon.classList.remove('fa-sun');
+    icon.classList.add('fa-moon');
+  }
+}
+
+function toggleTheme() {
+  const darkEnabled = document.documentElement.dataset.theme === 'dark';
+  if (darkEnabled) {
+    delete document.documentElement.dataset.theme;
+    localStorage.setItem(STORAGE_THEME_KEY, 'light');
+  } else {
+    document.documentElement.dataset.theme = 'dark';
+    localStorage.setItem(STORAGE_THEME_KEY, 'dark');
+  }
+  updateThemeIcon();
+}
+
+function applySavedTheme() {
+  const savedTheme = localStorage.getItem(STORAGE_THEME_KEY);
+  if (savedTheme === 'dark') {
+    document.documentElement.dataset.theme = 'dark';
+  }
+  updateThemeIcon();
+}
+
 const views = document.querySelectorAll('.view');
 const navLinks = document.querySelectorAll('.nav-link');
+const themeToggleButton = document.getElementById('theme-toggle');
+const langToggleButton = document.getElementById('lang-toggle');
 
 const productsFeedback = document.getElementById('products-feedback');
 const productsTableBody = document.getElementById('products-table-body');
@@ -84,6 +491,12 @@ let shelvesCache = [];
 let inventoryItemsCache = [];
 let selectedStoreId = '';
 
+function refreshUiLanguageStrings() {
+  renderProductsTable(productsCache);
+  renderStoresTable(storesCache);
+  renderEmployeesTable(employeesCache);
+}
+
 function bindIfPresent(element, eventName, handler) {
   if (!element) {
     return;
@@ -130,7 +543,7 @@ function setProductsFeedback(message, isError = false) {
 }
 
 async function loadProducts() {
-  setProductsFeedback('Loading products...');
+  setProductsFeedback(t('status.loadingProducts'));
 
   try {
     const response = await fetch(`${API_BASE}/api/products`);
@@ -140,7 +553,7 @@ async function loadProducts() {
 
     productsCache = await response.json();
     renderProductsTable(productsCache);
-    setProductsFeedback(`Loaded ${productsCache.length} product(s).`);
+    setProductsFeedback(t('status.loadedProducts', { count: productsCache.length }));
   } catch (error) {
     renderProductsTable([]);
     setProductsFeedback(error.message, true);
@@ -159,7 +572,7 @@ function renderProductsTable(products) {
     const row = document.createElement('tr');
     const cell = document.createElement('td');
     cell.colSpan = 6;
-    cell.textContent = 'No products found.';
+    cell.textContent = t('products.empty.found');
     row.appendChild(cell);
     productsTableBody.appendChild(row);
     return;
@@ -188,12 +601,12 @@ function renderProductsTable(products) {
     const actionsCell = document.createElement('td');
     const editButton = document.createElement('button');
     editButton.type = 'button';
-    editButton.textContent = 'Edit';
+    editButton.textContent = t('common.edit');
     editButton.addEventListener('click', () => openEditProductForm(product.id));
 
     const deleteButton = document.createElement('button');
     deleteButton.type = 'button';
-    deleteButton.textContent = 'Delete';
+    deleteButton.textContent = t('common.delete');
     deleteButton.addEventListener('click', () => deleteProduct(product.id));
 
     actionsCell.appendChild(editButton);
@@ -214,7 +627,8 @@ function openCreateProductForm() {
   if (!productFormSection) {
     return;
   }
-  productFormTitle.textContent = 'Create Product';
+  productFormTitle.dataset.i18n = 'products.form.createTitle';
+  productFormTitle.textContent = t('products.form.createTitle');
   productIdInput.value = '';
   productImageInput.value = '';
   productNameInput.value = '';
@@ -230,11 +644,12 @@ function openEditProductForm(productId) {
   }
   const product = productsCache.find((item) => item.id === productId);
   if (!product) {
-    setProductsFeedback('Selected product no longer exists.', true);
+    setProductsFeedback(t('status.productSelectedMissing'), true);
     return;
   }
 
-  productFormTitle.textContent = 'Edit Product';
+  productFormTitle.dataset.i18n = 'products.form.editTitle';
+  productFormTitle.textContent = t('products.form.editTitle');
   productIdInput.value = product.id || '';
   productImageInput.value = product.image || '';
   productNameInput.value = product.name || '';
@@ -291,14 +706,14 @@ async function saveProduct(event) {
 
     closeProductForm();
     await loadProducts();
-    setProductsFeedback(productId ? 'Product updated.' : 'Product created.');
+    setProductsFeedback(productId ? t('status.productUpdated') : t('status.productCreated'));
   } catch (error) {
     setProductsFeedback(error.message, true);
   }
 }
 
 async function deleteProduct(productId) {
-  if (!window.confirm('Delete this product?')) {
+  if (!window.confirm(t('confirm.deleteProduct'))) {
     return;
   }
 
@@ -313,7 +728,7 @@ async function deleteProduct(productId) {
     }
 
     await loadProducts();
-    setProductsFeedback('Product deleted.');
+    setProductsFeedback(t('status.productDeleted'));
   } catch (error) {
     setProductsFeedback(error.message, true);
   }
@@ -328,7 +743,7 @@ function setStoresFeedback(message, isError = false) {
 }
 
 async function loadStores() {
-  setStoresFeedback('Loading stores...');
+  setStoresFeedback(t('status.loadingStores'));
 
   try {
     const response = await fetch(`${API_BASE}/api/stores`);
@@ -338,13 +753,13 @@ async function loadStores() {
 
     storesCache = await response.json();
     renderStoresTable(storesCache);
-    setStoresFeedback(`Loaded ${storesCache.length} store(s).`);
+    setStoresFeedback(t('status.loadedStores', { count: storesCache.length }));
     await loadStoreDetailData(selectedStoreId);
   } catch (error) {
     renderStoresTable([]);
     renderStoreSelector('');
     renderStoreShelves([], [], new Map());
-    setStoreDetailFeedback('Unable to load store detail view.', true);
+    setStoreDetailFeedback(t('status.storeDetailUnavailable'), true);
     setStoresFeedback(error.message, true);
   }
 }
@@ -356,7 +771,7 @@ function renderStoresTable(stores) {
   clearTableBody(storesTableBody);
 
   if (!Array.isArray(stores) || stores.length === 0) {
-    renderEmptyState(storesTableBody, 6, 'No stores found.');
+    renderEmptyState(storesTableBody, 6, t('stores.empty.found'));
     return;
   }
 
@@ -397,7 +812,8 @@ function openCreateStoreForm() {
   if (!storeFormSection) {
     return;
   }
-  storeFormTitle.textContent = 'Create Store';
+  storeFormTitle.dataset.i18n = 'stores.form.createTitle';
+  storeFormTitle.textContent = t('stores.form.createTitle');
   storeIdInput.value = '';
   storeImageInput.value = '';
   storeNameInput.value = '';
@@ -422,11 +838,12 @@ function openEditStoreForm(storeId) {
   }
   const store = storesCache.find((item) => item.id === storeId);
   if (!store) {
-    setStoresFeedback('Selected store no longer exists.', true);
+    setStoresFeedback(t('status.storeSelectedMissing'), true);
     return;
   }
 
-  storeFormTitle.textContent = 'Edit Store';
+  storeFormTitle.dataset.i18n = 'stores.form.editTitle';
+  storeFormTitle.textContent = t('stores.form.editTitle');
   storeIdInput.value = store.id || '';
   storeImageInput.value = store.image || '';
   storeNameInput.value = store.name || '';
@@ -516,14 +933,14 @@ async function saveStore(event) {
 
     closeStoreForm();
     await loadStores();
-    setStoresFeedback(storeId ? 'Store updated.' : 'Store created.');
+    setStoresFeedback(storeId ? t('status.storeUpdated') : t('status.storeCreated'));
   } catch (error) {
     setStoresFeedback(error.message, true);
   }
 }
 
 async function deleteStore(storeId) {
-  if (!window.confirm('Delete this store?')) {
+  if (!window.confirm(t('confirm.deleteStore'))) {
     return;
   }
 
@@ -538,7 +955,7 @@ async function deleteStore(storeId) {
     }
 
     await loadStores();
-    setStoresFeedback('Store deleted.');
+    setStoresFeedback(t('status.storeDeleted'));
   } catch (error) {
     setStoresFeedback(error.message, true);
   }
@@ -557,11 +974,11 @@ async function loadStoreDetailData(preferredStoreId = '') {
     selectedStoreId = '';
     renderStoreSelector('');
     renderStoreShelves([], [], new Map());
-    setStoreDetailFeedback('No stores available for detail view.');
+    setStoreDetailFeedback(t('storeDetail.empty.noStoresForDetail'));
     return;
   }
 
-  setStoreDetailFeedback('Loading store inventory view...');
+  setStoreDetailFeedback(t('storeDetail.loadingInventory'));
 
   try {
     const [shelvesResponse, inventoryResponse, productsResponse] = await Promise.all([
@@ -588,7 +1005,7 @@ async function loadStoreDetailData(preferredStoreId = '') {
 
     renderStoreSelector(preferredStoreId);
     renderCurrentStoreInventory();
-    setStoreDetailFeedback('Store inventory view updated.');
+    setStoreDetailFeedback(t('storeDetail.updatedInventory'));
   } catch (error) {
     renderStoreShelves([], [], new Map());
     setStoreDetailFeedback(error.message, true);
@@ -606,7 +1023,7 @@ function renderStoreSelector(preferredStoreId) {
   if (!Array.isArray(storesCache) || storesCache.length === 0) {
     const option = document.createElement('option');
     option.value = '';
-    option.textContent = 'No stores available';
+    option.textContent = t('storeDetail.empty.noStoresOption');
     storeSelector.appendChild(option);
     storeSelector.value = '';
     selectedStoreId = '';
@@ -619,7 +1036,7 @@ function renderStoreSelector(preferredStoreId) {
   storesCache.forEach((store) => {
     const option = document.createElement('option');
     option.value = store.id;
-    option.textContent = `${store.name || 'Unnamed store'} (${store.id})`;
+    option.textContent = `${store.name || t('storeDetail.store.unnamed')} (${store.id})`;
     storeSelector.appendChild(option);
   });
 
@@ -659,7 +1076,7 @@ function renderStoreShelves(shelves, inventoryItems, productMap) {
   if (!selectedStoreId) {
     const note = document.createElement('p');
     note.className = 'empty-note';
-    note.textContent = 'Select a store to view shelves and inventory.';
+    note.textContent = t('storeDetail.empty.selectStore');
     storeShelvesContainer.appendChild(note);
     return;
   }
@@ -667,7 +1084,7 @@ function renderStoreShelves(shelves, inventoryItems, productMap) {
   if (!Array.isArray(shelves) || shelves.length === 0) {
     const note = document.createElement('p');
     note.className = 'empty-note';
-    note.textContent = 'No shelves found for the selected store.';
+    note.textContent = t('storeDetail.empty.noShelves');
     storeShelvesContainer.appendChild(note);
     return;
   }
@@ -694,11 +1111,11 @@ function renderStoreShelves(shelves, inventoryItems, productMap) {
     shelfHeader.className = 'shelf-header';
 
     const shelfTitle = document.createElement('h4');
-    shelfTitle.textContent = `${shelf.name || 'Unnamed shelf'} (${shelf.id})`;
+    shelfTitle.textContent = `${shelf.name || t('storeDetail.shelf.unnamed')} (${shelf.id})`;
 
     const shelfMetrics = document.createElement('span');
     shelfMetrics.className = 'shelf-metrics';
-    shelfMetrics.textContent = `${shelfItems.length} product(s)`;
+    shelfMetrics.textContent = t('storeDetail.metrics.productsCount', { count: shelfItems.length });
 
     shelfHeader.appendChild(shelfTitle);
     shelfHeader.appendChild(shelfMetrics);
@@ -726,7 +1143,7 @@ function renderStoreShelves(shelves, inventoryItems, productMap) {
     if (shelfItems.length === 0) {
       const empty = document.createElement('p');
       empty.className = 'empty-note';
-      empty.textContent = 'No inventory items on this shelf.';
+      empty.textContent = t('storeDetail.empty.noInventoryOnShelf');
       inventoryGrid.appendChild(empty);
     }
 
@@ -743,7 +1160,7 @@ function renderStoreShelves(shelves, inventoryItems, productMap) {
       const image = document.createElement('img');
       image.className = 'entity-image';
       image.src = product.image || '';
-      image.alt = product.name || 'product image';
+      image.alt = product.name || t('common.productImageAlt');
 
       const content = document.createElement('div');
 
@@ -752,12 +1169,12 @@ function renderStoreShelves(shelves, inventoryItems, productMap) {
 
       const meta = document.createElement('div');
       meta.className = 'inventory-item-meta';
-      const priceLabel = document.createTextNode('price: ');
+      const priceLabel = document.createTextNode(`${t('storeDetail.meta.price')}: `);
       const priceValue = document.createElement('span');
       priceValue.className = 'inventory-price-value';
       priceValue.dataset.productId = item.refProduct || '';
       priceValue.textContent = String(product.price ?? '');
-      const details = document.createTextNode(` | size: ${product.size || ''} | color: ${product.color || ''} | shelfCount: ${shelfCount} | stockCount: ${stockCount}`);
+      const details = document.createTextNode(` | ${t('storeDetail.meta.size')}: ${product.size || ''} | ${t('storeDetail.meta.color')}: ${product.color || ''} | ${t('storeDetail.meta.shelfCount')}: ${shelfCount} | ${t('storeDetail.meta.stockCount')}: ${stockCount}`);
 
       meta.appendChild(priceLabel);
       meta.appendChild(priceValue);
@@ -768,7 +1185,7 @@ function renderStoreShelves(shelves, inventoryItems, productMap) {
 
       const buyButton = document.createElement('button');
       buyButton.type = 'button';
-      buyButton.textContent = 'Comprar producto';
+      buyButton.textContent = t('storeDetail.buy');
       buyButton.disabled = shelfCount <= 0 || stockCount <= 0;
       buyButton.addEventListener('click', () => buyOneProduct(item));
 
@@ -790,12 +1207,12 @@ async function buyOneProduct(inventoryItem) {
   const currentStockCount = Number(inventoryItem.stockCount || 0);
 
   if (currentShelfCount <= 0) {
-    setStoreDetailFeedback('No units available on this shelf.', true);
+    setStoreDetailFeedback(t('status.noUnitsOnShelf'), true);
     return;
   }
 
   if (currentStockCount <= 0) {
-    setStoreDetailFeedback('No stock available for this product in the store.', true);
+    setStoreDetailFeedback(t('status.noStockInStore'), true);
     return;
   }
 
@@ -817,7 +1234,7 @@ async function buyOneProduct(inventoryItem) {
     }
 
     await loadStoreDetailData(selectedStoreId);
-    setStoreDetailFeedback('Product purchased. Counts updated.');
+    setStoreDetailFeedback(t('status.productPurchased'));
   } catch (error) {
     setStoreDetailFeedback(error.message, true);
   }
@@ -825,20 +1242,20 @@ async function buyOneProduct(inventoryItem) {
 
 async function addShelfToCurrentStore() {
   if (!selectedStoreId) {
-    setStoreDetailFeedback('Select a store first.', true);
+    setStoreDetailFeedback(t('status.selectStoreFirst'), true);
     return;
   }
 
-  const name = window.prompt('Shelf name:');
+  const name = window.prompt(t('prompt.shelfName'));
   if (!name) {
     return;
   }
 
-  const maxCapacityRaw = window.prompt('Shelf maxCapacity (positive integer):', '10');
+  const maxCapacityRaw = window.prompt(t('prompt.shelfMaxCapacity'), '10');
   const maxCapacity = Number(maxCapacityRaw);
 
   if (!Number.isInteger(maxCapacity) || maxCapacity <= 0) {
-    setStoreDetailFeedback('maxCapacity must be a positive integer.', true);
+    setStoreDetailFeedback(t('status.maxCapacityPositiveInt'), true);
     return;
   }
 
@@ -859,7 +1276,7 @@ async function addShelfToCurrentStore() {
     }
 
     await loadStoreDetailData(selectedStoreId);
-    setStoreDetailFeedback('Shelf created.');
+    setStoreDetailFeedback(t('status.shelfCreated'));
   } catch (error) {
     setStoreDetailFeedback(error.message, true);
   }
@@ -867,30 +1284,30 @@ async function addShelfToCurrentStore() {
 
 async function addInventoryItemToCurrentStore() {
   if (!selectedStoreId) {
-    setStoreDetailFeedback('Select a store first.', true);
+    setStoreDetailFeedback(t('status.selectStoreFirst'), true);
     return;
   }
 
   const shelvesForStore = shelvesCache.filter((shelf) => shelf.refStore === selectedStoreId);
   if (shelvesForStore.length === 0) {
-    setStoreDetailFeedback('Create a shelf before adding inventory items.', true);
+    setStoreDetailFeedback(t('status.createShelfFirst'), true);
     return;
   }
 
   if (productsCache.length === 0) {
-    setStoreDetailFeedback('No products available. Create a product first.', true);
+    setStoreDetailFeedback(t('status.noProductsAvailableCreateFirst'), true);
     return;
   }
 
-  const shelfOptions = shelvesForStore.map((shelf) => `${shelf.id} (${shelf.name || 'unnamed'})`).join('\n');
-  const selectedShelfId = window.prompt(`Choose shelf id:\n${shelfOptions}`);
+  const shelfOptions = shelvesForStore.map((shelf) => `${shelf.id} (${shelf.name || t('storeDetail.shelf.unnamed')})`).join('\n');
+  const selectedShelfId = window.prompt(t('prompt.chooseShelfId', { options: shelfOptions }));
   if (!selectedShelfId) {
     return;
   }
 
   const shelf = shelvesForStore.find((item) => item.id === selectedShelfId.trim());
   if (!shelf) {
-    setStoreDetailFeedback('Invalid shelf id.', true);
+    setStoreDetailFeedback(t('status.invalidShelfId'), true);
     return;
   }
 
@@ -902,26 +1319,26 @@ async function addInventoryItemToCurrentStore() {
 
   const availableProducts = productsCache.filter((product) => !existingOnShelf.has(product.id));
   if (availableProducts.length === 0) {
-    setStoreDetailFeedback('All products are already present on this shelf.', true);
+    setStoreDetailFeedback(t('status.allProductsAlreadyOnShelf'), true);
     return;
   }
 
-  const productOptions = availableProducts.map((product) => `${product.id} (${product.name || 'unnamed'})`).join('\n');
-  const selectedProductId = window.prompt(`Choose product id:\n${productOptions}`);
+  const productOptions = availableProducts.map((product) => `${product.id} (${product.name || t('storeDetail.store.unnamed')})`).join('\n');
+  const selectedProductId = window.prompt(t('prompt.chooseProductId', { options: productOptions }));
   if (!selectedProductId) {
     return;
   }
 
   const product = availableProducts.find((item) => item.id === selectedProductId.trim());
   if (!product) {
-    setStoreDetailFeedback('Invalid product id.', true);
+    setStoreDetailFeedback(t('status.invalidProductId'), true);
     return;
   }
 
-  const shelfCountRaw = window.prompt('shelfCount (non-negative integer):', '1');
+  const shelfCountRaw = window.prompt(t('prompt.shelfCount'), '1');
   const shelfCount = Number(shelfCountRaw);
   if (!Number.isInteger(shelfCount) || shelfCount < 0) {
-    setStoreDetailFeedback('shelfCount must be a non-negative integer.', true);
+    setStoreDetailFeedback(t('status.shelfCountNonNegativeInt'), true);
     return;
   }
 
@@ -948,7 +1365,7 @@ async function addInventoryItemToCurrentStore() {
     }
 
     await loadStoreDetailData(selectedStoreId);
-    setStoreDetailFeedback('InventoryItem created.');
+    setStoreDetailFeedback(t('status.inventoryItemCreated'));
   } catch (error) {
     setStoreDetailFeedback(error.message, true);
   }
@@ -971,7 +1388,7 @@ function setEmployeesFeedback(message, isError = false) {
 }
 
 async function loadEmployees() {
-  setEmployeesFeedback('Loading employees...');
+  setEmployeesFeedback(t('status.loadingEmployees'));
 
   try {
     const response = await fetch(`${API_BASE}/api/employees`);
@@ -981,7 +1398,7 @@ async function loadEmployees() {
 
     employeesCache = await response.json();
     renderEmployeesTable(employeesCache);
-    setEmployeesFeedback(`Loaded ${employeesCache.length} employee(s).`);
+    setEmployeesFeedback(t('status.loadedEmployees', { count: employeesCache.length }));
   } catch (error) {
     renderEmployeesTable([]);
     setEmployeesFeedback(error.message, true);
@@ -995,7 +1412,7 @@ function renderEmployeesTable(employees) {
   clearTableBody(employeesTableBody);
 
   if (!Array.isArray(employees) || employees.length === 0) {
-    renderEmptyState(employeesTableBody, 5, 'No employees found.');
+    renderEmptyState(employeesTableBody, 5, t('employees.empty.found'));
     return;
   }
 
@@ -1034,7 +1451,8 @@ function openCreateEmployeeForm() {
   if (!employeeFormSection) {
     return;
   }
-  employeeFormTitle.textContent = 'Create Employee';
+  employeeFormTitle.dataset.i18n = 'employees.form.createTitle';
+  employeeFormTitle.textContent = t('employees.form.createTitle');
   employeeIdInput.value = '';
   employeeImageInput.value = '';
   employeeNameInput.value = '';
@@ -1054,11 +1472,12 @@ function openEditEmployeeForm(employeeId) {
   }
   const employee = employeesCache.find((item) => item.id === employeeId);
   if (!employee) {
-    setEmployeesFeedback('Selected employee no longer exists.', true);
+    setEmployeesFeedback(t('status.employeeSelectedMissing'), true);
     return;
   }
 
-  employeeFormTitle.textContent = 'Edit Employee';
+  employeeFormTitle.dataset.i18n = 'employees.form.editTitle';
+  employeeFormTitle.textContent = t('employees.form.editTitle');
   employeeIdInput.value = employee.id || '';
   employeeImageInput.value = employee.image || '';
   employeeNameInput.value = employee.name || '';
@@ -1130,14 +1549,14 @@ async function saveEmployee(event) {
 
     closeEmployeeForm();
     await loadEmployees();
-    setEmployeesFeedback(employeeId ? 'Employee updated.' : 'Employee created.');
+    setEmployeesFeedback(employeeId ? t('status.employeeUpdated') : t('status.employeeCreated'));
   } catch (error) {
     setEmployeesFeedback(error.message, true);
   }
 }
 
 async function deleteEmployee(employeeId) {
-  if (!window.confirm('Delete this employee?')) {
+  if (!window.confirm(t('confirm.deleteEmployee'))) {
     return;
   }
 
@@ -1152,7 +1571,7 @@ async function deleteEmployee(employeeId) {
     }
 
     await loadEmployees();
-    setEmployeesFeedback('Employee deleted.');
+    setEmployeesFeedback(t('status.employeeDeleted'));
   } catch (error) {
     setEmployeesFeedback(error.message, true);
   }
@@ -1184,7 +1603,7 @@ function createImageCell(imageUrl, imageName) {
   const image = document.createElement('img');
   image.className = 'entity-image';
   image.src = imageUrl || '';
-  image.alt = imageName || 'entity image';
+  image.alt = imageName || t('common.entityImageAlt');
   imageCell.appendChild(image);
   return imageCell;
 }
@@ -1193,12 +1612,12 @@ function createActionsCell(onEdit, onDelete) {
   const actionsCell = document.createElement('td');
   const editButton = document.createElement('button');
   editButton.type = 'button';
-  editButton.textContent = 'Edit';
+  editButton.textContent = t('common.edit');
   editButton.addEventListener('click', onEdit);
 
   const deleteButton = document.createElement('button');
   deleteButton.type = 'button';
-  deleteButton.textContent = 'Delete';
+  deleteButton.textContent = t('common.delete');
   deleteButton.addEventListener('click', onDelete);
 
   actionsCell.appendChild(editButton);
@@ -1370,10 +1789,10 @@ function initRealtimeNotifications() {
       const notificationId = payload.subscriptionId || 'n/a';
       const entities = Array.isArray(payload.data) ? payload.data : [];
       const entitySummary = entities.length === 0
-        ? 'No entity data included'
+        ? t('notifications.noEntityData')
         : entities.map((entity) => {
           if (!entity || typeof entity !== 'object') {
-            return 'unknown entity';
+            return t('notifications.unknownEntity');
           }
 
           const entityType = entity.type || 'Entity';
@@ -1392,7 +1811,10 @@ function initRealtimeNotifications() {
           return `${entityType} ${entityId}`;
         }).join(' | ');
 
-      appendNotification('Orion notification', `Subscription ${notificationId}: ${entitySummary}`);
+      appendNotification(
+        t('notifications.orionTitle'),
+        t('notifications.subscriptionPrefix', { id: notificationId, summary: entitySummary }),
+      );
     } catch (error) {
       console.error('Error handling orion_notification event:', error);
     }
@@ -1421,6 +1843,10 @@ bindIfPresent(createEmployeeButton, 'click', openCreateEmployeeForm);
 bindIfPresent(refreshEmployeesButton, 'click', loadEmployees);
 bindIfPresent(cancelEmployeeButton, 'click', closeEmployeeForm);
 bindIfPresent(employeeForm, 'submit', saveEmployee);
+bindIfPresent(themeToggleButton, 'click', toggleTheme);
+bindIfPresent(langToggleButton, 'click', toggleLang);
 
+applySavedTheme();
+applyTranslations(currentLang);
 initRealtimeNotifications();
 showView('home-view');
