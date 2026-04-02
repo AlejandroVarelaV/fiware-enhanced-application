@@ -13,6 +13,7 @@ import re
 from config import get_config
 from seed_data import seed_data
 from app.utils.logger import setup_logging, get_logger
+from app.socketio_instance import socketio
 from app.services import (
     OrionService,
     ProductService,
@@ -21,6 +22,7 @@ from app.services import (
     ShelfService,
     InventoryItemService,
     SubscriptionService,
+    NotificationEventService,
 )
 from app.models.exceptions import (
     ApplicationError,
@@ -58,6 +60,10 @@ def create_app(config_name=None):
     # Create Flask app
     app = Flask(__name__)
     app.config.from_object(config)
+
+    # Initialize Socket.IO
+    socketio.init_app(app, cors_allowed_origins=app.config.get('CORS_ORIGINS', '*'))
+    app.socketio = socketio
     
     # Setup logging
     setup_logging(app)
@@ -88,6 +94,9 @@ def create_app(config_name=None):
     app.shelf_service = ShelfService(orion_service)
     app.inventory_item_service = InventoryItemService(orion_service)
     logger.debug("Product, Store, Employee, Shelf, and InventoryItem services initialized")
+
+    app.notification_event_service = NotificationEventService(socketio)
+    logger.debug("NotificationEventService initialized")
 
     # Seed initial data once if Orion is reachable and data is empty.
     try:
