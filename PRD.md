@@ -207,6 +207,19 @@ The backend shall receive, log, and process those notifications without crashing
 The backend notification endpoint is the integration point for future Socket.IO delivery to the frontend.
 Real-time browser updates are planned as a next step, but they are not yet part of the current notification flow.
 
+## Real-time Notifications (Completed)
+
+The system now supports fully working real-time updates triggered by Orion Context Broker entity changes.
+
+Implemented notification scenarios:
+- Product price change notifications when `Product.price` is updated.
+- Low stock alerts when `InventoryItem.stockCount < 5`.
+
+Delivery behavior:
+- Notifications are created and triggered automatically via Orion subscriptions registered at backend startup.
+- Orion sends callback payloads to the backend notification endpoint.
+- The backend forwards payloads to connected frontend users in real time through Flask-SocketIO.
+
 ## 5. Non-Functional Requirements
 
 ## 5.1 Usability and UX
@@ -244,6 +257,18 @@ Real-time browser updates are planned as a next step, but they are not yet part 
 - GitHub Flow is the mandatory development workflow for this project and shall be followed for every implementation action.
 - Documentation updates are continuous: PRD.md, architecture.md, and data_model.md shall be reviewed and updated immediately after each completed issue.
 - AGENTS.md may define repository-level operational rules that enforce documentation updates after each issue and must be aligned with this PRD policy.
+
+## 6. Implemented Project Structure Baseline (Issue #16)
+
+The repository baseline now includes the following mandatory project-structure artifacts and runtime services:
+
+- Root `AGENTS.md` with repository-level workflow and coding rules.
+- Root `README.md` with setup, prerequisites, execution modes, and seed data steps.
+- `docker-compose.yml` includes application services `backend` (Flask, port 5000) and `frontend` (static nginx, port 3000), in addition to Orion/Mongo/tutorial services.
+- Root `.gitignore` explicitly ignores `.venv`, `__pycache__`, `.env`, `*.pyc`, and `node_modules`.
+- Root `.env` is present and includes compose/runtime defaults.
+
+This issue introduces no new product features and no backend business-logic changes.
 
 ## 6. User Stories
 
@@ -315,6 +340,10 @@ Subscription and notification status:
 - Duplicate subscriptions are avoided by checking the existing subscription descriptions.
 - Orion unavailability during startup does not stop the application.
 - The working callback URL in the Linux Docker environment is `http://172.17.0.1:5000/api/notifications`.
+
+Real-time delivery status:
+- Backend notification reception and forwarding are implemented with Flask-SocketIO.
+- Frontend client receives `orion_notification` events and updates the notifications UI in real time.
 
 ### 8.2 Pending Features
 
