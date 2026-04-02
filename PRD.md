@@ -136,6 +136,16 @@ At application startup, the backend shall register external context providers in
 - tweets
 
 These providers are served by the tutorial container applications.
+Registration behavior requirements:
+- Register two Orion registrations at startup via `POST /v2/registrations`:
+   - One registration for `temperature` and `relativeHumidity`.
+   - One registration for `tweets`.
+- Provider URL must be `http://tutorial:3000/api/v2` and `legacyForwarding` must be `true`.
+- Registration errors must be logged and must not crash backend startup.
+
+### FR-8.1 Registrations Inspection Endpoint
+The backend shall expose `GET /api/registrations` as a proxy to Orion `GET /v2/registrations`,
+returning Orion JSON payloads for verification and operational troubleshooting.
 
 ### FR-9. Orion Subscriptions
 The application shall create Orion subscriptions equivalent to the NGSIv2 subscriptions tutorial for:

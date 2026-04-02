@@ -115,6 +115,11 @@ The backend is structured in logical layers:
 - Builds Orion subscription payloads for Product price changes and InventoryItem low stock.
 - Registers subscriptions at startup while avoiding duplicate creation.
 
+**app/services/context_provider_service.py** (Context Provider Registration Service):
+- Builds Orion registration payloads for external Store attributes.
+- Registers providers for `temperature`, `relativeHumidity`, and `tweets` at startup.
+- Uses isolated try/except handling per registration so startup never crashes on individual failures.
+
 **app/services/notification_event_service.py** (Notification Event Service):
 - Parses Orion notification payloads.
 - Emits Socket.IO events for supported event types.
@@ -127,6 +132,7 @@ The backend is structured in logical layers:
 - shelf_routes.py: Shelf CRUD endpoints (/api/shelves, /api/shelves/<id>)
 - inventory_item_routes.py: InventoryItem CRUD endpoints (/api/inventory-items, /api/inventory-items/<id>)
 - notification_routes.py: Orion callback endpoint (/api/notifications)
+- registration_routes.py: Orion registrations proxy endpoint (GET /api/registrations)
 - Blueprint-based modular design for future endpoint expansion
 
 Issue 1B/1C request processing flow:
@@ -317,6 +323,7 @@ Startup sequence requirements:
 2. Start Flask backend.
 3. Execute backend startup tasks:
   - Register subscriptions.
+  - Register external context providers (temperature, relativeHumidity, tweets).
 4. Open frontend UI.
 
 ## 9. Project Structure and Deployment Baseline (Issue #16)
