@@ -33,11 +33,19 @@ Interpretation:
 
 ## 3.1 Frontend (HTML/CSS/JavaScript)
 Responsibilities:
-- Render views: Home, Products, Stores, and Employees.
+- Render views: Home, Products, Stores, Employees, and Stores Map placeholder.
 - Render entity tables and Store detail grouped inventory view.
 - Execute CRUD actions through fetch-based REST calls to backend endpoints.
 - Render Store detail using DOM logic with hierarchy Store -> Shelves -> InventoryItems.
 - Execute Store detail actions (add Shelf, add InventoryItem, buy product).
+- Apply global UX state and localization behavior:
+  - Manchester United design tokens through CSS custom properties.
+  - Dark/Light mode toggling by updating `html[data-theme]`.
+  - EN/ES translation application using `data-i18n` attributes and a JavaScript translations object.
+  - Persist user theme and language preferences in `localStorage`.
+
+Issue 4 implementation note:
+- Form tags were intentionally kept as a known exception to preserve native HTML5 validation behavior.
 
 Key design constraints:
 - No frontend framework.
@@ -308,6 +316,23 @@ The diagram highlights the current implemented production flow.
   - Add Shelf, Add InventoryItem, and Buy product actions.
 - Employees view:
   - Employee table CRUD with category and skills.
+- Stores Map view:
+  - Navigation target and placeholder section are implemented.
+  - Full map rendering remains pending for the dedicated map issue.
+
+## 6.1 Global UX System (Issue 4)
+
+- Sticky navbar:
+  - Implemented as top-level sticky header with active-link highlighting.
+  - Includes 5 navigation links: Home, Products, Stores, Employees, Stores Map.
+- Theme architecture:
+  - Base theme tokens declared in `:root`.
+  - Dark mode overrides declared under `html[data-theme="dark"]`.
+  - Theme toggle updates only state attributes/classes, with no HTML injection.
+- Internationalization architecture:
+  - Text resources are centralized in a frontend `translations` object with `en` and `es` namespaces.
+  - `applyTranslations(lang)` iterates through translatable nodes (`data-i18n`) and updates text values.
+  - Language selection persists across sessions using `localStorage`.
 
 ## 7. Architectural Constraints and Quality Decisions
 
