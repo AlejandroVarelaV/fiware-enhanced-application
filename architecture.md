@@ -294,7 +294,8 @@ The diagram highlights the current implemented production flow.
 ## 6. View-to-Component Mapping
 
 - Home:
-  - Static dashboard entry view.
+  - Dashboard entry view with Mermaid-based entity model diagram.
+  - Includes "Entity Model" heading and short application description under the diagram.
 - Products view:
   - Product table CRUD, including color/size/price columns.
 - Stores view:

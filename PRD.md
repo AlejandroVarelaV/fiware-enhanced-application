@@ -114,6 +114,7 @@ The Store detail page shall include all items below:
 
 ### FR-5. Home View
 Home shall render the entity UML diagram (Mermaid) for the extended model.
+Implemented: Home now includes an "Entity Model" section that renders the Mermaid class diagram for Store, Employee, Product, Shelf, and InventoryItem, followed by the app description text.
 
 ### FR-6. Navigation Bar
 The navigation bar shall:
