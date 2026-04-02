@@ -1344,10 +1344,14 @@ function initRealtimeNotifications() {
     return;
   }
 
-  const socket = window.io(SOCKET_BASE);
+  const socket = window.location.origin === SOCKET_BASE ? io() : io(SOCKET_BASE);
 
   socket.on('connect', () => {
-    console.log('Socket.IO connected', socket.id);
+    console.log('Socket connected');
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Socket disconnected');
   });
 
   socket.on('connect_error', (error) => {
@@ -1355,7 +1359,7 @@ function initRealtimeNotifications() {
   });
 
   socket.on('orion_notification', (payload) => {
-    console.log('Socket event: orion_notification', payload);
+    console.log('Notification received:', payload);
 
     try {
       if (!payload || typeof payload !== 'object') {
