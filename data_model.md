@@ -223,7 +223,7 @@ Recommended NGSIv2 attribute typing:
 
 ## 7. Mermaid UML Entity Diagram
 
-The Mermaid UML diagram defined below shall be rendered in the Home view of the application.
+The Mermaid UML diagram defined below is rendered in the Home view of the application.
 
 ```mermaid
 classDiagram
@@ -324,6 +324,7 @@ This initialization baseline ensures all mandatory UI views and grouping behavio
 - Backend notification reception and logging are implemented.
 - Frontend renders Store detail grouped by Shelf and InventoryItem using this model.
 - Purchase flow updates `InventoryItem` by decrementing `shelfCount` and `stockCount` from backend entity values.
+- Frontend Home view renders this Mermaid class diagram with all entity attributes and relationship multiplicities.
 
 ### 10.2 Pending
 
