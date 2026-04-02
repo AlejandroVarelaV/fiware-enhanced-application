@@ -161,6 +161,25 @@
           </div>
         </form>
       </section>
+
+      <section id="store-detail-section">
+        <h3>Store Detail</h3>
+        <div class="actions-row">
+          <select id="store-selector" aria-label="Select store"></select>
+          <button id="refresh-store-detail-btn" type="button">Refresh Detail</button>
+          <button id="add-shelf-btn" type="button">Add Shelf</button>
+          <button id="add-inventory-item-btn" type="button">Add Inventory Item</button>
+        </div>
+        <p id="store-detail-feedback" class="feedback" role="status" aria-live="polite"></p>
+        <div id="store-shelves-container"></div>
+      </section>
+
+      <section id="notifications-section">
+        <h3>Notifications</h3>
+        <ul id="notifications-list">
+          <li class="empty-note">No notifications yet.</li>
+        </ul>
+      </section>
     </section>
 
     <section id="employees-view" class="view hidden">

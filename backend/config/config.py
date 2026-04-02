@@ -27,8 +27,12 @@ class Config:
     
     # Orion Context Broker settings
     ORION_URL = os.getenv('ORION_URL', 'http://localhost:1026')
-    ORION_FIWARE_SERVICE = os.getenv('ORION_FIWARE_SERVICE', 'smart-retail')
+    ORION_FIWARE_SERVICE = os.getenv('ORION_FIWARE_SERVICE', 'smart_retail')
     ORION_FIWARE_SERVICEPATH = os.getenv('ORION_FIWARE_SERVICEPATH', '/')
+    ORION_NOTIFICATION_URL = os.getenv('ORION_NOTIFICATION_URL', 'http://host.docker.internal:5000/api/notifications')
+    
+    # Subscription settings
+    LOW_STOCK_THRESHOLD = int(os.getenv('LOW_STOCK_THRESHOLD', 5))
     
     # Health check settings
     HEALTH_CHECK_TIMEOUT = int(os.getenv('HEALTH_CHECK_TIMEOUT', 2))

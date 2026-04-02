@@ -56,7 +56,7 @@ Edit `.env` to match your Orion setup. Default values are:
 - `FLASK_CONFIG=development`
 - `FLASK_PORT=5000`
 - `ORION_URL=http://localhost:1026`
-- `ORION_FIWARE_SERVICE=smart-retail`
+- `ORION_FIWARE_SERVICE=smart_retail`
 - `ORION_FIWARE_SERVICEPATH=/`
 
 **Docker Setup Note:** If Orion is running in Docker, you may need to use:
@@ -100,6 +100,56 @@ If Orion is not reachable, you'll receive a 503 response:
   "timestamp": "2026-03-23T10:30:00Z"
 }
 ```
+
+## Notifications and Subscriptions
+
+The backend automatically registers two NGSIv2 subscriptions when the application starts:
+- Product price change alerts for `Product.price` updates.
+- Low stock alerts for `InventoryItem.stockCount` values below the configured threshold.
+
+Subscription creation is idempotent. Existing subscriptions are checked by description before new ones are created, so restarting the backend does not duplicate them.
+
+Orion notifications are delivered to the backend callback endpoint:
+
+```text
+POST /api/notifications
+```
+
+The backend logs incoming Orion notifications. Real-time browser delivery via Socket.IO is planned for a later iteration and is not yet wired to the frontend.
+
+### Manual testing
+
+List subscriptions:
+
+```bash
+curl -H "Fiware-Service: smart_retail" http://localhost:1026/v2/subscriptions
+```
+
+Trigger a product price change:
+
+```bash
+curl -X PATCH http://localhost:1026/v2/entities/product-001/attrs \
+   -H "Content-Type: application/json" \
+   -H "Fiware-Service: smart_retail" \
+   -d '{ "price": { "type": "Number", "value": 999 } }'
+```
+
+Expected backend log output includes:
+
+```text
+Received Orion notification
+```
+
+### Docker networking note
+
+In this Linux environment, `host.docker.internal` was not reliable for Orion callbacks.
+Use the Docker bridge gateway address instead:
+
+```text
+http://172.17.0.1:5000/api/notifications
+```
+
+That is the callback URL configured in the backend.
 
 ## Project Structure
 

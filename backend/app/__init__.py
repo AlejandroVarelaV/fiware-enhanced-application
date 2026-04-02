@@ -8,8 +8,10 @@ blueprints, error handlers, and services.
 from flask import Flask, jsonify
 from flask_cors import CORS
 import logging
+import re
 
 from config import get_config
+from seed_data import seed_data
 from app.utils.logger import setup_logging, get_logger
 from app.services import (
     OrionService,
@@ -18,6 +20,7 @@ from app.services import (
     EmployeeService,
     ShelfService,
     InventoryItemService,
+    SubscriptionService,
 )
 from app.models.exceptions import (
     ApplicationError,
@@ -31,6 +34,7 @@ from app.routes import (
     employee_bp,
     shelf_bp,
     inventory_item_bp,
+    notification_bp,
 )
 
 
@@ -64,10 +68,13 @@ def create_app(config_name=None):
     CORS(app, origins=cors_origins)
     logger.debug(f"CORS enabled for origins: {cors_origins}")
     
+    fiware_service = app.config.get('ORION_FIWARE_SERVICE', 'smart_retail')
+    fiware_service = re.sub(r'[^A-Za-z0-9_]', '_', fiware_service)
+
     # Initialize OrionService
     orion_service = OrionService(
         base_url=app.config.get('ORION_URL', 'http://localhost:1026'),
-        fiware_service=app.config.get('ORION_FIWARE_SERVICE', 'smart-retail'),
+        fiware_service=fiware_service,
         fiware_servicepath=app.config.get('ORION_FIWARE_SERVICEPATH', '/'),
         timeout=app.config.get('HEALTH_CHECK_TIMEOUT', 2),
     )
@@ -81,6 +88,13 @@ def create_app(config_name=None):
     app.shelf_service = ShelfService(orion_service)
     app.inventory_item_service = InventoryItemService(orion_service)
     logger.debug("Product, Store, Employee, Shelf, and InventoryItem services initialized")
+
+    # Seed initial data once if Orion is reachable and data is empty.
+    try:
+        seed_data(app)
+        logger.info("Initial data seeding check completed")
+    except Exception as e:
+        logger.warning(f"Initial data seeding skipped due to error: {e}")
     
     # Register blueprints
     app.register_blueprint(health_bp)
@@ -89,7 +103,22 @@ def create_app(config_name=None):
     app.register_blueprint(employee_bp)
     app.register_blueprint(shelf_bp)
     app.register_blueprint(inventory_item_bp)
-    logger.debug("Health check blueprint registered")
+    app.register_blueprint(notification_bp)
+    logger.debug("Health check and notification blueprints registered")
+    
+    # Register Orion subscriptions for price changes and low stock alerts
+    try:
+        subscription_service = SubscriptionService(
+            orion_service=orion_service,
+            notification_url=app.config.get('ORION_NOTIFICATION_URL', 'http://host.docker.internal:5000/api/notifications'),
+            low_stock_threshold=app.config.get('LOW_STOCK_THRESHOLD', 5),
+        )
+        subscription_service.register_subscriptions()
+        logger.info("Orion subscriptions registered successfully")
+    except OrionConnectionError as e:
+        logger.warning(f"Orion subscriptions registration skipped: Orion unavailable ({e})")
+    except Exception as e:
+        logger.warning(f"Orion subscriptions registration skipped due to error: {e}")
     
     # Register error handlers
     register_error_handlers(app)

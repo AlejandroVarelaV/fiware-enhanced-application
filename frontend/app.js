@@ -1,4 +1,5 @@
-const API_BASE = window.location.protocol === 'file:' ? 'http://localhost:5000' : '';
+const API_BASE = 'http://localhost:5000';
+const SOCKET_BASE = 'http://localhost:5000';
 
 const views = document.querySelectorAll('.view');
 const navLinks = document.querySelectorAll('.nav-link');
@@ -45,6 +46,12 @@ const storeUrlInput = document.getElementById('store-url');
 const storeTelephoneInput = document.getElementById('store-telephone');
 const storeCapacityInput = document.getElementById('store-capacity');
 const storeDescriptionInput = document.getElementById('store-description');
+const storeSelector = document.getElementById('store-selector');
+const storeDetailFeedback = document.getElementById('store-detail-feedback');
+const storeShelvesContainer = document.getElementById('store-shelves-container');
+const addShelfButton = document.getElementById('add-shelf-btn');
+const addInventoryItemButton = document.getElementById('add-inventory-item-btn');
+const refreshStoreDetailButton = document.getElementById('refresh-store-detail-btn');
 
 const employeesFeedback = document.getElementById('employees-feedback');
 const employeesTableBody = document.getElementById('employees-table-body');
@@ -66,10 +73,23 @@ const employeeDateOfContractInput = document.getElementById('employee-date-of-co
 const employeeUsernameInput = document.getElementById('employee-username');
 const employeePasswordInput = document.getElementById('employee-password');
 const employeeRefStoreInput = document.getElementById('employee-ref-store');
+const notificationsList = document.getElementById('notifications-list');
+
+const MAX_NOTIFICATIONS = 50;
 
 let productsCache = [];
 let storesCache = [];
 let employeesCache = [];
+let shelvesCache = [];
+let inventoryItemsCache = [];
+let selectedStoreId = '';
+
+function bindIfPresent(element, eventName, handler) {
+  if (!element) {
+    return;
+  }
+  element.addEventListener(eventName, handler);
+}
 
 function showView(viewId) {
   views.forEach((view) => {
@@ -102,6 +122,9 @@ function showView(viewId) {
 }
 
 function setProductsFeedback(message, isError = false) {
+  if (!productsFeedback) {
+    return;
+  }
   productsFeedback.textContent = message;
   productsFeedback.style.color = isError ? 'red' : 'inherit';
 }
@@ -125,6 +148,9 @@ async function loadProducts() {
 }
 
 function renderProductsTable(products) {
+  if (!productsTableBody) {
+    return;
+  }
   while (productsTableBody.firstChild) {
     productsTableBody.removeChild(productsTableBody.firstChild);
   }
@@ -141,6 +167,7 @@ function renderProductsTable(products) {
 
   products.forEach((product) => {
     const row = document.createElement('tr');
+    row.dataset.productId = product.id || '';
 
     const imageCell = createImageCell(product.image, product.name);
 
@@ -154,6 +181,8 @@ function renderProductsTable(products) {
     sizeCell.textContent = product.size || '';
 
     const priceCell = document.createElement('td');
+    priceCell.className = 'product-price-cell';
+    priceCell.dataset.productId = product.id || '';
     priceCell.textContent = String(product.price ?? '');
 
     const actionsCell = document.createElement('td');
@@ -182,6 +211,9 @@ function renderProductsTable(products) {
 }
 
 function openCreateProductForm() {
+  if (!productFormSection) {
+    return;
+  }
   productFormTitle.textContent = 'Create Product';
   productIdInput.value = '';
   productImageInput.value = '';
@@ -193,6 +225,9 @@ function openCreateProductForm() {
 }
 
 function openEditProductForm(productId) {
+  if (!productFormSection) {
+    return;
+  }
   const product = productsCache.find((item) => item.id === productId);
   if (!product) {
     setProductsFeedback('Selected product no longer exists.', true);
@@ -210,6 +245,9 @@ function openEditProductForm(productId) {
 }
 
 function closeProductForm() {
+  if (!productFormSection) {
+    return;
+  }
   productFormSection.classList.add('hidden');
 }
 
@@ -282,6 +320,9 @@ async function deleteProduct(productId) {
 }
 
 function setStoresFeedback(message, isError = false) {
+  if (!storesFeedback) {
+    return;
+  }
   storesFeedback.textContent = message;
   storesFeedback.style.color = isError ? 'red' : 'inherit';
 }
@@ -298,13 +339,20 @@ async function loadStores() {
     storesCache = await response.json();
     renderStoresTable(storesCache);
     setStoresFeedback(`Loaded ${storesCache.length} store(s).`);
+    await loadStoreDetailData(selectedStoreId);
   } catch (error) {
     renderStoresTable([]);
+    renderStoreSelector('');
+    renderStoreShelves([], [], new Map());
+    setStoreDetailFeedback('Unable to load store detail view.', true);
     setStoresFeedback(error.message, true);
   }
 }
 
 function renderStoresTable(stores) {
+  if (!storesTableBody) {
+    return;
+  }
   clearTableBody(storesTableBody);
 
   if (!Array.isArray(stores) || stores.length === 0) {
@@ -346,6 +394,9 @@ function renderStoresTable(stores) {
 }
 
 function openCreateStoreForm() {
+  if (!storeFormSection) {
+    return;
+  }
   storeFormTitle.textContent = 'Create Store';
   storeIdInput.value = '';
   storeImageInput.value = '';
@@ -366,6 +417,9 @@ function openCreateStoreForm() {
 }
 
 function openEditStoreForm(storeId) {
+  if (!storeFormSection) {
+    return;
+  }
   const store = storesCache.find((item) => item.id === storeId);
   if (!store) {
     setStoresFeedback('Selected store no longer exists.', true);
@@ -392,6 +446,9 @@ function openEditStoreForm(storeId) {
 }
 
 function closeStoreForm() {
+  if (!storeFormSection) {
+    return;
+  }
   storeFormSection.classList.add('hidden');
 }
 
@@ -487,7 +544,428 @@ async function deleteStore(storeId) {
   }
 }
 
+function setStoreDetailFeedback(message, isError = false) {
+  if (!storeDetailFeedback) {
+    return;
+  }
+  storeDetailFeedback.textContent = message;
+  storeDetailFeedback.style.color = isError ? 'red' : 'inherit';
+}
+
+async function loadStoreDetailData(preferredStoreId = '') {
+  if (!Array.isArray(storesCache) || storesCache.length === 0) {
+    selectedStoreId = '';
+    renderStoreSelector('');
+    renderStoreShelves([], [], new Map());
+    setStoreDetailFeedback('No stores available for detail view.');
+    return;
+  }
+
+  setStoreDetailFeedback('Loading store inventory view...');
+
+  try {
+    const [shelvesResponse, inventoryResponse, productsResponse] = await Promise.all([
+      fetch(`${API_BASE}/api/shelves`),
+      fetch(`${API_BASE}/api/inventory-items`),
+      fetch(`${API_BASE}/api/products`),
+    ]);
+
+    if (!shelvesResponse.ok) {
+      throw new Error(`Failed to load shelves (${shelvesResponse.status})`);
+    }
+
+    if (!inventoryResponse.ok) {
+      throw new Error(`Failed to load inventory items (${inventoryResponse.status})`);
+    }
+
+    if (!productsResponse.ok) {
+      throw new Error(`Failed to load products (${productsResponse.status})`);
+    }
+
+    shelvesCache = await shelvesResponse.json();
+    inventoryItemsCache = await inventoryResponse.json();
+    productsCache = await productsResponse.json();
+
+    renderStoreSelector(preferredStoreId);
+    renderCurrentStoreInventory();
+    setStoreDetailFeedback('Store inventory view updated.');
+  } catch (error) {
+    renderStoreShelves([], [], new Map());
+    setStoreDetailFeedback(error.message, true);
+  }
+}
+
+function renderStoreSelector(preferredStoreId) {
+  if (!storeSelector) {
+    return;
+  }
+  while (storeSelector.firstChild) {
+    storeSelector.removeChild(storeSelector.firstChild);
+  }
+
+  if (!Array.isArray(storesCache) || storesCache.length === 0) {
+    const option = document.createElement('option');
+    option.value = '';
+    option.textContent = 'No stores available';
+    storeSelector.appendChild(option);
+    storeSelector.value = '';
+    selectedStoreId = '';
+    addShelfButton.disabled = true;
+    addInventoryItemButton.disabled = true;
+    refreshStoreDetailButton.disabled = true;
+    return;
+  }
+
+  storesCache.forEach((store) => {
+    const option = document.createElement('option');
+    option.value = store.id;
+    option.textContent = `${store.name || 'Unnamed store'} (${store.id})`;
+    storeSelector.appendChild(option);
+  });
+
+  const validPreferred = preferredStoreId && storesCache.some((store) => store.id === preferredStoreId);
+  const currentValid = selectedStoreId && storesCache.some((store) => store.id === selectedStoreId);
+
+  if (validPreferred) {
+    selectedStoreId = preferredStoreId;
+  } else if (!currentValid) {
+    selectedStoreId = storesCache[0].id;
+  }
+
+  storeSelector.value = selectedStoreId;
+  addShelfButton.disabled = false;
+  addInventoryItemButton.disabled = false;
+  refreshStoreDetailButton.disabled = false;
+}
+
+function renderCurrentStoreInventory() {
+  const productMap = new Map(productsCache.map((product) => [product.id, product]));
+
+  // Frontend-only filter by current store id.
+  const inventoryForStore = inventoryItemsCache.filter((item) => item.refStore === selectedStoreId);
+  const shelvesForStore = shelvesCache.filter((shelf) => shelf.refStore === selectedStoreId);
+
+  renderStoreShelves(shelvesForStore, inventoryForStore, productMap);
+}
+
+function renderStoreShelves(shelves, inventoryItems, productMap) {
+  if (!storeShelvesContainer) {
+    return;
+  }
+  while (storeShelvesContainer.firstChild) {
+    storeShelvesContainer.removeChild(storeShelvesContainer.firstChild);
+  }
+
+  if (!selectedStoreId) {
+    const note = document.createElement('p');
+    note.className = 'empty-note';
+    note.textContent = 'Select a store to view shelves and inventory.';
+    storeShelvesContainer.appendChild(note);
+    return;
+  }
+
+  if (!Array.isArray(shelves) || shelves.length === 0) {
+    const note = document.createElement('p');
+    note.className = 'empty-note';
+    note.textContent = 'No shelves found for the selected store.';
+    storeShelvesContainer.appendChild(note);
+    return;
+  }
+
+  const stockByProduct = inventoryItems.reduce((acc, item) => {
+    const productId = item.refProduct;
+    const shelfCount = Number(item.shelfCount || 0);
+    acc[productId] = (acc[productId] || 0) + shelfCount;
+    return acc;
+  }, {});
+
+  shelves.forEach((shelf) => {
+    const shelfItems = inventoryItems.filter((item) => item.refShelf === shelf.id);
+    const usedCapacity = shelfItems.reduce((sum, item) => sum + Number(item.shelfCount || 0), 0);
+    const maxCapacity = Number(shelf.maxCapacity || 0);
+    const fillPercent = maxCapacity > 0
+      ? Math.min(100, Math.round((usedCapacity / maxCapacity) * 100))
+      : 0;
+
+    const shelfCard = document.createElement('article');
+    shelfCard.className = 'shelf-card';
+
+    const shelfHeader = document.createElement('div');
+    shelfHeader.className = 'shelf-header';
+
+    const shelfTitle = document.createElement('h4');
+    shelfTitle.textContent = `${shelf.name || 'Unnamed shelf'} (${shelf.id})`;
+
+    const shelfMetrics = document.createElement('span');
+    shelfMetrics.className = 'shelf-metrics';
+    shelfMetrics.textContent = `${shelfItems.length} product(s)`;
+
+    shelfHeader.appendChild(shelfTitle);
+    shelfHeader.appendChild(shelfMetrics);
+
+    const capacityRow = document.createElement('div');
+    capacityRow.className = 'capacity-row';
+
+    const capacityTrack = document.createElement('div');
+    capacityTrack.className = 'capacity-track';
+
+    const capacityFill = document.createElement('div');
+    capacityFill.className = 'capacity-fill';
+    capacityFill.style.width = `${fillPercent}%`;
+
+    const capacityLabel = document.createElement('span');
+    capacityLabel.textContent = `${usedCapacity}/${maxCapacity || 0} (${fillPercent}%)`;
+
+    capacityTrack.appendChild(capacityFill);
+    capacityRow.appendChild(capacityTrack);
+    capacityRow.appendChild(capacityLabel);
+
+    const inventoryGrid = document.createElement('div');
+    inventoryGrid.className = 'inventory-grid';
+
+    if (shelfItems.length === 0) {
+      const empty = document.createElement('p');
+      empty.className = 'empty-note';
+      empty.textContent = 'No inventory items on this shelf.';
+      inventoryGrid.appendChild(empty);
+    }
+
+    shelfItems.forEach((item) => {
+      const product = productMap.get(item.refProduct) || {};
+      const shelfCount = Number(item.shelfCount || 0);
+      const stockCount = Number(stockByProduct[item.refProduct] || 0);
+
+      const inventoryCard = document.createElement('div');
+      inventoryCard.className = 'inventory-item-card';
+      inventoryCard.dataset.productId = item.refProduct || '';
+      inventoryCard.dataset.storeId = item.refStore || selectedStoreId || '';
+
+      const image = document.createElement('img');
+      image.className = 'entity-image';
+      image.src = product.image || '';
+      image.alt = product.name || 'product image';
+
+      const content = document.createElement('div');
+
+      const title = document.createElement('strong');
+      title.textContent = product.name || item.refProduct;
+
+      const meta = document.createElement('div');
+      meta.className = 'inventory-item-meta';
+      const priceLabel = document.createTextNode('price: ');
+      const priceValue = document.createElement('span');
+      priceValue.className = 'inventory-price-value';
+      priceValue.dataset.productId = item.refProduct || '';
+      priceValue.textContent = String(product.price ?? '');
+      const details = document.createTextNode(` | size: ${product.size || ''} | color: ${product.color || ''} | shelfCount: ${shelfCount} | stockCount: ${stockCount}`);
+
+      meta.appendChild(priceLabel);
+      meta.appendChild(priceValue);
+      meta.appendChild(details);
+
+      content.appendChild(title);
+      content.appendChild(meta);
+
+      const buyButton = document.createElement('button');
+      buyButton.type = 'button';
+      buyButton.textContent = 'Comprar producto';
+      buyButton.disabled = shelfCount <= 0 || stockCount <= 0;
+      buyButton.addEventListener('click', () => buyOneProduct(item));
+
+      inventoryCard.appendChild(image);
+      inventoryCard.appendChild(content);
+      inventoryCard.appendChild(buyButton);
+      inventoryGrid.appendChild(inventoryCard);
+    });
+
+    shelfCard.appendChild(shelfHeader);
+    shelfCard.appendChild(capacityRow);
+    shelfCard.appendChild(inventoryGrid);
+    storeShelvesContainer.appendChild(shelfCard);
+  });
+}
+
+async function buyOneProduct(inventoryItem) {
+  const currentShelfCount = Number(inventoryItem.shelfCount || 0);
+  const currentStockCount = Number(inventoryItem.stockCount || 0);
+
+  if (currentShelfCount <= 0) {
+    setStoreDetailFeedback('No units available on this shelf.', true);
+    return;
+  }
+
+  if (currentStockCount <= 0) {
+    setStoreDetailFeedback('No stock available for this product in the store.', true);
+    return;
+  }
+
+  const payload = {
+    shelfCount: currentShelfCount - 1,
+    stockCount: currentStockCount - 1,
+  };
+
+  try {
+    const response = await fetch(`${API_BASE}/api/inventory-items/${inventoryItem.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || `Buy operation failed (${response.status})`);
+    }
+
+    await loadStoreDetailData(selectedStoreId);
+    setStoreDetailFeedback('Product purchased. Counts updated.');
+  } catch (error) {
+    setStoreDetailFeedback(error.message, true);
+  }
+}
+
+async function addShelfToCurrentStore() {
+  if (!selectedStoreId) {
+    setStoreDetailFeedback('Select a store first.', true);
+    return;
+  }
+
+  const name = window.prompt('Shelf name:');
+  if (!name) {
+    return;
+  }
+
+  const maxCapacityRaw = window.prompt('Shelf maxCapacity (positive integer):', '10');
+  const maxCapacity = Number(maxCapacityRaw);
+
+  if (!Number.isInteger(maxCapacity) || maxCapacity <= 0) {
+    setStoreDetailFeedback('maxCapacity must be a positive integer.', true);
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}/api/shelves`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: name.trim(),
+        maxCapacity,
+        refStore: selectedStoreId,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || `Create shelf failed (${response.status})`);
+    }
+
+    await loadStoreDetailData(selectedStoreId);
+    setStoreDetailFeedback('Shelf created.');
+  } catch (error) {
+    setStoreDetailFeedback(error.message, true);
+  }
+}
+
+async function addInventoryItemToCurrentStore() {
+  if (!selectedStoreId) {
+    setStoreDetailFeedback('Select a store first.', true);
+    return;
+  }
+
+  const shelvesForStore = shelvesCache.filter((shelf) => shelf.refStore === selectedStoreId);
+  if (shelvesForStore.length === 0) {
+    setStoreDetailFeedback('Create a shelf before adding inventory items.', true);
+    return;
+  }
+
+  if (productsCache.length === 0) {
+    setStoreDetailFeedback('No products available. Create a product first.', true);
+    return;
+  }
+
+  const shelfOptions = shelvesForStore.map((shelf) => `${shelf.id} (${shelf.name || 'unnamed'})`).join('\n');
+  const selectedShelfId = window.prompt(`Choose shelf id:\n${shelfOptions}`);
+  if (!selectedShelfId) {
+    return;
+  }
+
+  const shelf = shelvesForStore.find((item) => item.id === selectedShelfId.trim());
+  if (!shelf) {
+    setStoreDetailFeedback('Invalid shelf id.', true);
+    return;
+  }
+
+  const existingOnShelf = new Set(
+    inventoryItemsCache
+      .filter((item) => item.refShelf === shelf.id)
+      .map((item) => item.refProduct),
+  );
+
+  const availableProducts = productsCache.filter((product) => !existingOnShelf.has(product.id));
+  if (availableProducts.length === 0) {
+    setStoreDetailFeedback('All products are already present on this shelf.', true);
+    return;
+  }
+
+  const productOptions = availableProducts.map((product) => `${product.id} (${product.name || 'unnamed'})`).join('\n');
+  const selectedProductId = window.prompt(`Choose product id:\n${productOptions}`);
+  if (!selectedProductId) {
+    return;
+  }
+
+  const product = availableProducts.find((item) => item.id === selectedProductId.trim());
+  if (!product) {
+    setStoreDetailFeedback('Invalid product id.', true);
+    return;
+  }
+
+  const shelfCountRaw = window.prompt('shelfCount (non-negative integer):', '1');
+  const shelfCount = Number(shelfCountRaw);
+  if (!Number.isInteger(shelfCount) || shelfCount < 0) {
+    setStoreDetailFeedback('shelfCount must be a non-negative integer.', true);
+    return;
+  }
+
+  const currentStoreStock = inventoryItemsCache
+    .filter((item) => item.refStore === selectedStoreId && item.refProduct === product.id)
+    .reduce((sum, item) => sum + Number(item.shelfCount || 0), 0);
+
+  try {
+    const response = await fetch(`${API_BASE}/api/inventory-items`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        shelfCount,
+        stockCount: currentStoreStock + shelfCount,
+        refStore: selectedStoreId,
+        refShelf: shelf.id,
+        refProduct: product.id,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || `Create inventory item failed (${response.status})`);
+    }
+
+    await loadStoreDetailData(selectedStoreId);
+    setStoreDetailFeedback('InventoryItem created.');
+  } catch (error) {
+    setStoreDetailFeedback(error.message, true);
+  }
+}
+
+function handleStoreSelectionChange() {
+  if (!storeSelector) {
+    return;
+  }
+  selectedStoreId = storeSelector.value;
+  renderCurrentStoreInventory();
+}
+
 function setEmployeesFeedback(message, isError = false) {
+  if (!employeesFeedback) {
+    return;
+  }
   employeesFeedback.textContent = message;
   employeesFeedback.style.color = isError ? 'red' : 'inherit';
 }
@@ -511,6 +989,9 @@ async function loadEmployees() {
 }
 
 function renderEmployeesTable(employees) {
+  if (!employeesTableBody) {
+    return;
+  }
   clearTableBody(employeesTableBody);
 
   if (!Array.isArray(employees) || employees.length === 0) {
@@ -550,6 +1031,9 @@ function renderEmployeesTable(employees) {
 }
 
 function openCreateEmployeeForm() {
+  if (!employeeFormSection) {
+    return;
+  }
   employeeFormTitle.textContent = 'Create Employee';
   employeeIdInput.value = '';
   employeeImageInput.value = '';
@@ -565,6 +1049,9 @@ function openCreateEmployeeForm() {
 }
 
 function openEditEmployeeForm(employeeId) {
+  if (!employeeFormSection) {
+    return;
+  }
   const employee = employeesCache.find((item) => item.id === employeeId);
   if (!employee) {
     setEmployeesFeedback('Selected employee no longer exists.', true);
@@ -588,6 +1075,9 @@ function openEditEmployeeForm(employeeId) {
 }
 
 function closeEmployeeForm() {
+  if (!employeeFormSection) {
+    return;
+  }
   employeeFormSection.classList.add('hidden');
 }
 
@@ -669,12 +1159,18 @@ async function deleteEmployee(employeeId) {
 }
 
 function clearTableBody(tableBody) {
+  if (!tableBody) {
+    return;
+  }
   while (tableBody.firstChild) {
     tableBody.removeChild(tableBody.firstChild);
   }
 }
 
 function renderEmptyState(tableBody, colSpan, message) {
+  if (!tableBody) {
+    return;
+  }
   const row = document.createElement('tr');
   const cell = document.createElement('td');
   cell.colSpan = colSpan;
@@ -710,23 +1206,218 @@ function createActionsCell(onEdit, onDelete) {
   return actionsCell;
 }
 
+function getEscapedSelectorValue(value) {
+  const text = String(value || '');
+  if (window.CSS && typeof window.CSS.escape === 'function') {
+    return window.CSS.escape(text);
+  }
+  return text.replace(/["\\]/g, '\\$&');
+}
+
+function appendNotification(title, details) {
+  if (!notificationsList) {
+    return;
+  }
+
+  const existingEmptyNote = notificationsList.querySelector('.empty-note');
+  if (existingEmptyNote) {
+    existingEmptyNote.remove();
+  }
+
+  const item = document.createElement('li');
+  item.className = 'notification-item';
+
+  const heading = document.createElement('strong');
+  heading.textContent = title;
+
+  const message = document.createElement('span');
+  message.textContent = details;
+
+  const timestamp = document.createElement('small');
+  timestamp.textContent = new Date().toLocaleTimeString();
+
+  item.appendChild(heading);
+  item.appendChild(message);
+  item.appendChild(document.createElement('br'));
+  item.appendChild(timestamp);
+
+  notificationsList.appendChild(item);
+
+  while (notificationsList.children.length > MAX_NOTIFICATIONS) {
+    notificationsList.removeChild(notificationsList.firstChild);
+  }
+}
+
+function normalizePriceChangedPayload(payload) {
+  const entity = payload && payload.entity;
+  if (!entity || typeof entity !== 'object') {
+    return null;
+  }
+
+  const productId = typeof entity.id === 'string' ? entity.id.trim() : '';
+  const priceValue = Number(entity.price);
+  if (!productId || Number.isNaN(priceValue)) {
+    return null;
+  }
+
+  return {
+    productId,
+    productName: entity.name || productId,
+    price: priceValue,
+  };
+}
+
+function normalizeLowStockPayload(payload) {
+  const entity = payload && payload.entity;
+  if (!entity || typeof entity !== 'object') {
+    return null;
+  }
+
+  const inventoryId = typeof entity.id === 'string' ? entity.id.trim() : '';
+  const productId = typeof entity.refProduct === 'string' ? entity.refProduct.trim() : '';
+  const storeId = typeof entity.refStore === 'string' ? entity.refStore.trim() : '';
+  const stockCount = Number(entity.stockCount);
+  const threshold = Number(payload.threshold);
+
+  if (!inventoryId || Number.isNaN(stockCount)) {
+    return null;
+  }
+
+  return {
+    inventoryId,
+    productId,
+    storeId,
+    stockCount,
+    threshold: Number.isNaN(threshold) ? null : threshold,
+  };
+}
+
+function updateProductPriceInUI(productId, price) {
+  productsCache = productsCache.map((product) => {
+    if (product.id === productId) {
+      return { ...product, price };
+    }
+    return product;
+  });
+
+  const escapedProductId = getEscapedSelectorValue(productId);
+  const nextPrice = String(price);
+
+  const productPriceCells = document.querySelectorAll(`.product-price-cell[data-product-id="${escapedProductId}"]`);
+  productPriceCells.forEach((cell) => {
+    cell.textContent = nextPrice;
+  });
+
+  const storePriceFields = document.querySelectorAll(`.inventory-price-value[data-product-id="${escapedProductId}"]`);
+  storePriceFields.forEach((field) => {
+    field.textContent = nextPrice;
+  });
+}
+
+function highlightLowStockProduct(productId, storeId) {
+  if (!productId) {
+    return;
+  }
+
+  const escapedProductId = getEscapedSelectorValue(productId);
+  const productRows = document.querySelectorAll(`tr[data-product-id="${escapedProductId}"]`);
+
+  productRows.forEach((row) => {
+    row.classList.add('low-stock');
+    window.setTimeout(() => row.classList.remove('low-stock'), 5000);
+  });
+
+  if (storeId && selectedStoreId && storeId !== selectedStoreId) {
+    return;
+  }
+
+  const inventoryCards = document.querySelectorAll(`.inventory-item-card[data-product-id="${escapedProductId}"]`);
+  inventoryCards.forEach((card) => {
+    card.classList.add('low-stock');
+    window.setTimeout(() => card.classList.remove('low-stock'), 5000);
+  });
+}
+
+function initRealtimeNotifications() {
+  if (typeof window.io !== 'function') {
+    // Socket.IO script is optional for basic CRUD usage.
+    return;
+  }
+
+  const socket = window.io(SOCKET_BASE);
+
+  socket.on('connect', () => {
+    console.log('Socket.IO connected', socket.id);
+  });
+
+  socket.on('connect_error', (error) => {
+    console.error('Socket.IO connection error:', error);
+  });
+
+  socket.on('product_price_changed', (payload) => {
+    console.log('Socket event: product_price_changed', payload);
+
+    try {
+      const event = normalizePriceChangedPayload(payload);
+      if (!event) {
+        console.warn('Ignoring malformed product_price_changed event payload.', payload);
+        return;
+      }
+
+      updateProductPriceInUI(event.productId, event.price);
+      appendNotification(
+        'Price change',
+        `${event.productName} (${event.productId}) new price: ${event.price}`,
+      );
+    } catch (error) {
+      console.error('Error handling product_price_changed event:', error);
+    }
+  });
+
+  socket.on('low_stock', (payload) => {
+    console.log('Socket event: low_stock', payload);
+
+    try {
+      const event = normalizeLowStockPayload(payload);
+      if (!event) {
+        console.warn('Ignoring malformed low_stock event payload.', payload);
+        return;
+      }
+
+      const thresholdText = event.threshold === null ? 'n/a' : String(event.threshold);
+      appendNotification(
+        'Low stock',
+        `Inventory ${event.inventoryId} | product: ${event.productId || 'n/a'} | store: ${event.storeId || 'n/a'} | stock: ${event.stockCount} | threshold: ${thresholdText}`,
+      );
+      highlightLowStockProduct(event.productId, event.storeId);
+    } catch (error) {
+      console.error('Error handling low_stock event:', error);
+    }
+  });
+}
+
 navLinks.forEach((button) => {
-  button.addEventListener('click', () => showView(button.dataset.view));
+  bindIfPresent(button, 'click', () => showView(button.dataset.view));
 });
 
-createProductButton.addEventListener('click', openCreateProductForm);
-refreshProductsButton.addEventListener('click', loadProducts);
-cancelProductButton.addEventListener('click', closeProductForm);
-productForm.addEventListener('submit', saveProduct);
+bindIfPresent(createProductButton, 'click', openCreateProductForm);
+bindIfPresent(refreshProductsButton, 'click', loadProducts);
+bindIfPresent(cancelProductButton, 'click', closeProductForm);
+bindIfPresent(productForm, 'submit', saveProduct);
 
-createStoreButton.addEventListener('click', openCreateStoreForm);
-refreshStoresButton.addEventListener('click', loadStores);
-cancelStoreButton.addEventListener('click', closeStoreForm);
-storeForm.addEventListener('submit', saveStore);
+bindIfPresent(createStoreButton, 'click', openCreateStoreForm);
+bindIfPresent(refreshStoresButton, 'click', loadStores);
+bindIfPresent(cancelStoreButton, 'click', closeStoreForm);
+bindIfPresent(storeForm, 'submit', saveStore);
+bindIfPresent(storeSelector, 'change', handleStoreSelectionChange);
+bindIfPresent(addShelfButton, 'click', addShelfToCurrentStore);
+bindIfPresent(addInventoryItemButton, 'click', addInventoryItemToCurrentStore);
+bindIfPresent(refreshStoreDetailButton, 'click', () => loadStoreDetailData(selectedStoreId));
 
-createEmployeeButton.addEventListener('click', openCreateEmployeeForm);
-refreshEmployeesButton.addEventListener('click', loadEmployees);
-cancelEmployeeButton.addEventListener('click', closeEmployeeForm);
-employeeForm.addEventListener('submit', saveEmployee);
+bindIfPresent(createEmployeeButton, 'click', openCreateEmployeeForm);
+bindIfPresent(refreshEmployeesButton, 'click', loadEmployees);
+bindIfPresent(cancelEmployeeButton, 'click', closeEmployeeForm);
+bindIfPresent(employeeForm, 'submit', saveEmployee);
 
+initRealtimeNotifications();
 showView('home-view');
