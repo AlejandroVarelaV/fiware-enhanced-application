@@ -128,6 +128,11 @@ The Stores Map view shall:
 - Show a hover card with image and key Store attributes.
 - Navigate to Store detail when a Store marker/image is clicked.
 
+Current implemented state after Issue 4:
+- Navigation includes a Stores Map tab.
+- The Stores Map view is currently an empty placeholder section.
+- Full Leaflet implementation remains pending for its dedicated issue.
+
 ## 4.4 NGSIv2 Registrations, Subscriptions, and Notifications
 
 ### FR-8. External Context Providers Registration
@@ -356,9 +361,28 @@ Real-time delivery status:
 - Backend notification reception and forwarding are implemented with Flask-SocketIO.
 - Frontend client receives `orion_notification` events and updates the notifications UI in real time.
 
+Frontend (Issue 4 - Global UX theme system):
+- Manchester United design system implemented with CSS custom properties:
+   - `--color-primary: #DA020E`
+   - `--color-primary-dark: #8B0000`
+   - `--color-secondary: #FFD700`
+   - `--color-white: #FFFFFF`
+   - `--color-black: #1A1A1A`
+   - `--color-surface: #F8F8F8`
+   - `--font-heading: 'Bebas Neue', sans-serif`
+   - `--font-body: 'Inter', sans-serif`
+- Dark/Light mode toggle implemented through `html[data-theme="dark"]` and persisted with `localStorage`.
+- EN/ES i18n system implemented using a frontend translations object and `data-i18n` attributes.
+- Sticky global navigation bar implemented with 5 links:
+   - Home
+   - Products
+   - Stores
+   - Employees
+   - Stores Map (placeholder)
+- Known exception: form tags were intentionally kept to preserve native HTML5 validation behavior and existing input constraints.
+
 ### 8.2 Pending Features
 
-- Frontend Socket.IO client integration and in-UI real-time notification rendering.
 - Store map view (Leaflet) and store-detail map section.
 - Three.js immersive store visualization.
-- Advanced UI features requested by assignment (full iconography set, bilingual i18n toggle, dark/light mode polish, advanced visuals).
+- Advanced UI features requested by assignment that are not yet completed beyond Issue 4 baseline.

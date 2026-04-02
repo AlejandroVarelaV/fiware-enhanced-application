@@ -330,6 +330,22 @@ This initialization baseline ensures all mandatory UI views and grouping behavio
 
 - Frontend real-time notification consumption and advanced visualization layers do not alter this entity model and remain outside current implemented UI scope.
 
+## 10.3 Issue 4 UX Alignment (Non-Entity State)
+
+Issue 4 introduced global frontend UX behavior that does not modify NGSI entity schemas but affects UI-level state representation:
+
+- Theme state:
+  - Persisted in browser `localStorage`.
+  - Applied via `html[data-theme="dark"]` and CSS custom property overrides.
+- Language state:
+  - Persisted in browser `localStorage`.
+  - Applied through EN/ES translation keys mapped to DOM nodes using `data-i18n` attributes.
+- Navigation model at UI layer:
+  - Global sticky navbar with 5 sections: Home, Products, Stores, Employees, Stores Map.
+  - Stores Map is currently a placeholder section; no new entity relationships were added.
+- Known exception for validation integrity:
+  - Existing HTML form tags were intentionally retained so native HTML5 validation attributes and constraints remain authoritative.
+
 ## 11. Project-Structure Alignment Note (Issue #16)
 
 This issue introduces no data-model/entity-schema changes.
