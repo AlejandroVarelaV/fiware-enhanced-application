@@ -101,6 +101,77 @@ If Orion is not reachable, you'll receive a 503 response:
 }
 ```
 
+## Notifications and Subscriptions
+
+The backend automatically registers two NGSIv2 subscriptions when the application starts:
+- Product price change alerts for `Product.price` updates.
+- Low stock alerts for `InventoryItem.stockCount` values below the configured threshold.
+
+Subscription creation is idempotent. Existing subscriptions are checked by description before new ones are created, so restarting the backend does not duplicate them.
+
+Orion notifications are delivered to the backend callback endpoint:
+
+```text
+POST /api/notifications
+```
+
+The backend logs incoming Orion notifications and emits them to connected browsers through Socket.IO on the `orion_notification` event.
+
+The frontend listens for that event and logs the raw payload in the browser console. The notification panel also shows a short summary so you can verify delivery quickly.
+
+## Real-Time Notifications (Orion + Socket.IO)
+
+### How it works
+
+- Orion subscriptions are created automatically at backend startup.
+- Backend exposes callback endpoint `POST /api/notifications`.
+- Incoming Orion notification payloads are forwarded through Flask-SocketIO.
+- Backend emits Socket.IO event `orion_notification` to connected frontend clients.
+- Frontend receives the event and updates notifications in real time.
+
+### Example test
+
+```bash
+curl -X PATCH http://localhost:1026/v2/entities/product-001/attrs \
+-H "Content-Type: application/json" \
+-H "Fiware-Service: smart_retail" \
+-d '{ "price": { "type": "Number", "value": 999 } }'
+```
+
+### Manual testing
+
+List subscriptions:
+
+```bash
+curl -H "Fiware-Service: smart_retail" http://localhost:1026/v2/subscriptions
+```
+
+Trigger a product price change:
+
+```bash
+curl -X PATCH http://localhost:1026/v2/entities/product-001/attrs \
+   -H "Content-Type: application/json" \
+   -H "Fiware-Service: smart_retail" \
+   -d '{ "price": { "type": "Number", "value": 999 } }'
+```
+
+Expected backend log output includes:
+
+```text
+Received Orion notification
+```
+
+### Docker networking note
+
+In this Linux environment, `host.docker.internal` was not reliable for Orion callbacks.
+Use the Docker bridge gateway address instead:
+
+```text
+http://172.17.0.1:5000/api/notifications
+```
+
+That is the callback URL configured in the backend.
+
 ## Project Structure
 
 ```
