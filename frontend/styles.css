@@ -370,6 +370,45 @@ select {
   margin-bottom: 12px;
 }
 
+.tour-hidden {
+  display: none;
+}
+
+#store-3d-tour-container {
+  position: relative;
+  width: 100%;
+  height: 500px;
+  margin: 12px 0 18px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  background: #1a1a1a;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+}
+
+#store-3d-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+#tour-product-info {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 260px;
+  background: rgba(0, 0, 0, 0.7);
+  color: var(--color-white);
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(8px);
+}
+
 .store-photo-container {
   border-radius: 10px;
   overflow: hidden;
