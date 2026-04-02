@@ -18,7 +18,7 @@ class FakeSocketIO:
 
 
 class NotificationEventServiceTests(unittest.TestCase):
-    def test_emits_product_price_changed(self):
+    def test_emits_orion_notification(self):
         fake_socketio = FakeSocketIO()
         service = NotificationEventService(fake_socketio, low_stock_threshold=5)
 
@@ -37,50 +37,8 @@ class NotificationEventServiceTests(unittest.TestCase):
         emitted_count = service.forward_orion_notification(payload)
 
         self.assertEqual(emitted_count, 1)
-        self.assertEqual(fake_socketio.events[0][0], 'product_price_changed')
-
-    def test_emits_low_stock_when_below_threshold(self):
-        fake_socketio = FakeSocketIO()
-        service = NotificationEventService(fake_socketio, low_stock_threshold=5)
-
-        payload = {
-            'subscriptionId': 'sub-low-stock',
-            'data': [
-                {
-                    'id': 'inventory-1',
-                    'type': 'InventoryItem',
-                    'stockCount': {'type': 'Integer', 'value': 2},
-                    'refProduct': {'type': 'Text', 'value': 'product-1'},
-                    'refShelf': {'type': 'Text', 'value': 'shelf-1'},
-                    'refStore': {'type': 'Text', 'value': 'store-1'},
-                }
-            ],
-        }
-
-        emitted_count = service.forward_orion_notification(payload)
-
-        self.assertEqual(emitted_count, 1)
-        self.assertEqual(fake_socketio.events[0][0], 'low_stock')
-
-    def test_does_not_emit_low_stock_when_at_or_above_threshold(self):
-        fake_socketio = FakeSocketIO()
-        service = NotificationEventService(fake_socketio, low_stock_threshold=5)
-
-        payload = {
-            'subscriptionId': 'sub-low-stock',
-            'data': [
-                {
-                    'id': 'inventory-1',
-                    'type': 'InventoryItem',
-                    'stockCount': {'type': 'Integer', 'value': 5},
-                }
-            ],
-        }
-
-        emitted_count = service.forward_orion_notification(payload)
-
-        self.assertEqual(emitted_count, 0)
-        self.assertEqual(len(fake_socketio.events), 0)
+        self.assertEqual(fake_socketio.events[0][0], 'orion_notification')
+        self.assertEqual(fake_socketio.events[0][1], payload)
 
 
 class NotificationRouteSocketIOTests(unittest.TestCase):
@@ -107,6 +65,33 @@ class NotificationRouteSocketIOTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get_json()['status'], 'received')
         self.assertEqual(response.get_json()['eventsEmitted'], 1)
+
+
+class NotificationRouteGenericDeliveryTests(unittest.TestCase):
+    def test_notification_route_emits_generic_event(self):
+        app = Flask(__name__)
+        fake_socketio = FakeSocketIO()
+        app.notification_event_service = NotificationEventService(fake_socketio, low_stock_threshold=5)
+        app.register_blueprint(notification_bp)
+
+        client = app.test_client()
+        payload = {
+            'subscriptionId': 'sub-generic',
+            'data': [
+                {
+                    'id': 'inventory-1',
+                    'type': 'InventoryItem',
+                    'stockCount': {'type': 'Integer', 'value': 2},
+                }
+            ],
+        }
+
+        response = client.post('/api/notifications', json=payload)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json()['eventsEmitted'], 1)
+        self.assertEqual(fake_socketio.events[0][0], 'orion_notification')
+        self.assertEqual(fake_socketio.events[0][1], payload)
 
 
 if __name__ == '__main__':

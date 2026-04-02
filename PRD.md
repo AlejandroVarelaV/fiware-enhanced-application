@@ -192,6 +192,34 @@ The UI shall support:
 - English and Spanish language switching.
 - Dark mode and Light mode via toggle.
 
+## 4.7 NGSIv2 Subscriptions and Notifications
+
+### FR-22. Orion Subscription Use Cases
+The backend shall automatically register NGSIv2 subscriptions at application startup for:
+- Product price change alerts when `Product.price` changes.
+- Low stock alerts when `InventoryItem.stockCount` falls below the configured threshold.
+
+### FR-23. Notification Delivery Behavior
+Orion shall deliver subscription notifications to the backend notification endpoint.
+The backend shall receive, log, and process those notifications without crashing if Orion is temporarily unavailable.
+
+### FR-24. Real-Time Updates Roadmap
+The backend notification endpoint is the integration point for future Socket.IO delivery to the frontend.
+Real-time browser updates are planned as a next step, but they are not yet part of the current notification flow.
+
+## Real-time Notifications (Completed)
+
+The system now supports fully working real-time updates triggered by Orion Context Broker entity changes.
+
+Implemented notification scenarios:
+- Product price change notifications when `Product.price` is updated.
+- Low stock alerts when `InventoryItem.stockCount < 5`.
+
+Delivery behavior:
+- Notifications are created and triggered automatically via Orion subscriptions registered at backend startup.
+- Orion sends callback payloads to the backend notification endpoint.
+- The backend forwards payloads to connected frontend users in real time through Flask-SocketIO.
+
 ## 5. Non-Functional Requirements
 
 ## 5.1 Usability and UX
@@ -230,6 +258,18 @@ The UI shall support:
 - Documentation updates are continuous: PRD.md, architecture.md, and data_model.md shall be reviewed and updated immediately after each completed issue.
 - AGENTS.md may define repository-level operational rules that enforce documentation updates after each issue and must be aligned with this PRD policy.
 
+## 6. Implemented Project Structure Baseline (Issue #16)
+
+The repository baseline now includes the following mandatory project-structure artifacts and runtime services:
+
+- Root `AGENTS.md` with repository-level workflow and coding rules.
+- Root `README.md` with setup, prerequisites, execution modes, and seed data steps.
+- `docker-compose.yml` includes application services `backend` (Flask, port 5000) and `frontend` (static nginx, port 3000), in addition to Orion/Mongo/tutorial services.
+- Root `.gitignore` explicitly ignores `.venv`, `__pycache__`, `.env`, `*.pyc`, and `node_modules`.
+- Root `.env` is present and includes compose/runtime defaults.
+
+This issue introduces no new product features and no backend business-logic changes.
+
 ## 6. User Stories
 
 1. As a store manager, I want to view all Stores with key environmental indicators so that I can quickly identify risky humidity/temperature conditions.
@@ -267,7 +307,8 @@ Backend (Issues 1C, 2A, 2B):
 - Orion integration implemented through OrionService.
 - SubscriptionService implemented and executed at startup to register Orion subscriptions (price change and low stock).
 - Notification callback endpoint implemented at `/api/notifications`.
-- Flask-SocketIO integration implemented in backend and notification forwarding service emits real-time events.
+- Notifications are received and logged successfully.
+- Socket.IO frontend propagation remains pending for a future iteration.
 
 Frontend (Issues 2C, 2D + Store detail completion):
 - Base frontend implemented as vanilla HTML/CSS/JavaScript (no frameworks).
@@ -293,6 +334,16 @@ Purchase flow status:
 - PATCH payload decrements both `shelfCount` and `stockCount` by 1.
 - Values used in PATCH are taken directly from backend InventoryItem fields.
 - After successful PATCH, Store detail view is refreshed using existing fetch/render flow.
+
+Subscription and notification status:
+- Orion subscriptions are created automatically at startup.
+- Duplicate subscriptions are avoided by checking the existing subscription descriptions.
+- Orion unavailability during startup does not stop the application.
+- The working callback URL in the Linux Docker environment is `http://172.17.0.1:5000/api/notifications`.
+
+Real-time delivery status:
+- Backend notification reception and forwarding are implemented with Flask-SocketIO.
+- Frontend client receives `orion_notification` events and updates the notifications UI in real time.
 
 ### 8.2 Pending Features
 

@@ -1,30 +1,62 @@
-# AGENTS
+# United Supermarket - Agent Instructions
 
 ## App Description
-United Supermarket, FIWARE NGSIv2-powered supermarket management.
 
-## Mandatory GitHub Flow
-For every issue, follow this exact sequence:
-1. Create issue
-2. Create branch
-3. Implement
-4. Commit
-5. Push
-6. Merge to main
+United Supermarket is a Manchester United themed smart retail application built on FIWARE NGSIv2.
+It uses Orion Context Broker as the context data source, a Flask backend for API orchestration,
+and a static frontend for user interaction.
 
-## Post-Merge Documentation Rule
-After every merged issue, always update:
+## Mandatory Workflow (GitHub Flow)
+
+Always follow this sequence for every change:
+
+1. Create or reference a GitHub issue.
+2. Create a dedicated branch from main.
+3. Implement the change in that branch.
+4. Commit with a clear message.
+5. Push branch to remote.
+6. Open PR and merge to main.
+
+## Documentation Update Policy (Mandatory)
+
+After finishing any issue, ALWAYS update all of these files so they reflect the real implemented state:
 - PRD.md
 - architecture.md
 - data_model.md
 
 ## Code Conventions
-- Prefer CSS over JS for visual effects.
-- JavaScript must update existing HTML element attributes rather than injecting new HTML.
-- Never use HTML <form> tags.
+
+- Prefer CSS over JavaScript for visual effects when both are possible.
+- JavaScript must update existing HTML element attributes/values instead of injecting new HTML where feasible.
+- Do not use <form> tags.
 
 ## File Structure Overview
-- backend/
-- frontend/
-- docker-compose.yml
-- .env
+
+```text
+.
+├── AGENTS.md
+├── README.md
+├── PRD.md
+├── architecture.md
+├── data_model.md
+├── docker-compose.yml
+├── .env
+├── .gitignore
+├── backend/
+│   ├── run.py
+│   ├── requirements.txt
+│   ├── seed_data.py
+│   ├── app/
+│   │   ├── routes/
+│   │   ├── services/
+│   │   ├── models/
+│   │   └── utils/
+│   ├── config/
+│   └── tests/
+├── frontend/
+│   ├── index.html
+│   ├── styles.css
+│   └── app.js
+├── services/
+└── import-data
+```

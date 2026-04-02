@@ -7,6 +7,7 @@ Start the backend server by running: python run.py
 import os
 from dotenv import load_dotenv
 from app import create_app
+from app.socketio_instance import socketio
 
 
 # Load environment variables from .env file
@@ -23,8 +24,10 @@ if __name__ == '__main__':
     
     # Run development server
     # Note: For production, use a production WSGI server like Gunicorn
-    app.run(
+    socketio.run(
+        app,
         host='0.0.0.0',
         port=port,
         debug=debug,
+        allow_unsafe_werkzeug=True,
     )

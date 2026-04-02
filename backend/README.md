@@ -56,7 +56,7 @@ Edit `.env` to match your Orion setup. Default values are:
 - `FLASK_CONFIG=development`
 - `FLASK_PORT=5000`
 - `ORION_URL=http://localhost:1026`
-- `ORION_FIWARE_SERVICE=smart-retail`
+- `ORION_FIWARE_SERVICE=smart_retail`
 - `ORION_FIWARE_SERVICEPATH=/`
 
 **Docker Setup Note:** If Orion is running in Docker, you may need to use:

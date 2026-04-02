@@ -70,6 +70,39 @@ services:
       - "TWITTER_CONSUMER_KEY=<ADD_YOUR_CONSUMER_KEY>"
       - "TWITTER_CONSUMER_SECRET=<ADD_YOUR_CONSUMER_SECRET>"
 
+  backend:
+    image: python:3.11-slim
+    hostname: backend
+    container_name: united-backend
+    depends_on:
+      - orion-v2
+    networks:
+      - default
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+    env_file:
+      - ./backend/.env.example
+    environment:
+      - ORION_URL=http://orion-v2:${ORION_PORT}
+      - FLASK_PORT=5000
+    command: sh -c "pip install --no-cache-dir -r requirements.txt && python run.py"
+    ports:
+      - "5000:5000"
+
+  frontend:
+    image: nginx:alpine
+    hostname: frontend
+    container_name: united-frontend
+    depends_on:
+      - backend
+    networks:
+      - default
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+    ports:
+      - "3000:80"
+
 
   # Database
   mongo-db:

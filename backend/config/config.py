@@ -27,7 +27,7 @@ class Config:
     
     # Orion Context Broker settings
     ORION_URL = os.getenv('ORION_URL', 'http://localhost:1026')
-    ORION_FIWARE_SERVICE = os.getenv('ORION_FIWARE_SERVICE', 'smart-retail')
+    ORION_FIWARE_SERVICE = os.getenv('ORION_FIWARE_SERVICE', 'smart_retail')
     ORION_FIWARE_SERVICEPATH = os.getenv('ORION_FIWARE_SERVICEPATH', '/')
     ORION_NOTIFICATION_URL = os.getenv('ORION_NOTIFICATION_URL', 'http://172.17.0.1:5000/api/notifications')
     

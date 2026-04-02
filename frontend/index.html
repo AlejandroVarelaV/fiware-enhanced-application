@@ -1,93 +1,256 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Smart Retail Frontend</title>
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
-    <header class="app-header">
-      <h1>Smart Retail Dashboard</h1>
-      <nav class="main-nav" aria-label="Main navigation">
-        <button type="button" class="nav-btn active" data-view="home">Home</button>
-        <button type="button" class="nav-btn" data-view="products">Products</button>
-        <button type="button" class="nav-btn" data-view="stores">Stores</button>
-        <button type="button" class="nav-btn" data-view="employees">Employees</button>
-      </nav>
-    </header>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Retail UI</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Smart Retail Dashboard</h1>
+    <nav class="main-nav" aria-label="Main navigation">
+      <button type="button" class="nav-link active" data-view="home-view">Home</button>
+      <button type="button" class="nav-link" data-view="products-view">Products</button>
+      <button type="button" class="nav-link" data-view="stores-view">Stores</button>
+      <button type="button" class="nav-link" data-view="employees-view">Employees</button>
+    </nav>
+  </header>
 
-    <main class="app-main">
-      <section id="home-view" class="view active" aria-label="Home view">
-        <h2>Home</h2>
-        <p>Use the navigation to manage products and inspect store and employee data.</p>
-      </section>
+  <main>
+    <section id="home-view" class="view">
+      <h2>Home</h2>
+      <p>Welcome to the Smart Retail frontend.</p>
+      <p>Use the navigation bar to manage entities.</p>
+    </section>
 
-      <section id="products-view" class="view" aria-label="Products view">
-        <h2>Products</h2>
+    <section id="products-view" class="view hidden">
+      <h2>Products</h2>
 
-        <div class="panel">
-          <h3>Create Product</h3>
-          <form id="create-product-form" class="form-grid">
-            <label>Name <input name="name" required /></label>
-            <label>Image <input name="image" required /></label>
-            <label>Size <input name="size" required /></label>
-            <label>Price <input name="price" type="number" step="0.01" required /></label>
-            <label>Color <input name="color" required placeholder="#RRGGBB" /></label>
-            <button type="submit">Create</button>
-          </form>
-        </div>
+      <div class="actions-row">
+        <button id="create-product-btn" type="button">Create Product</button>
+        <button id="refresh-products-btn" type="button">Refresh</button>
+      </div>
 
-        <div class="panel">
-          <h3>Update Product (PATCH)</h3>
-          <form id="update-product-form" class="form-grid">
-            <label>Product ID <input name="id" required /></label>
-            <label>Name <input name="name" /></label>
-            <label>Image <input name="image" /></label>
-            <label>Size <input name="size" /></label>
-            <label>Price <input name="price" type="number" step="0.01" /></label>
-            <label>Color <input name="color" placeholder="#RRGGBB" /></label>
-            <button type="submit">Update</button>
-          </form>
-        </div>
+      <p id="products-feedback" class="feedback" role="status" aria-live="polite"></p>
 
-        <div class="panel">
-          <h3>Delete Product</h3>
-          <form id="delete-product-form" class="inline-form">
-            <label>Product ID <input name="id" required /></label>
-            <button type="submit" class="danger">Delete</button>
-          </form>
-        </div>
+      <table id="products-table">
+        <thead>
+          <tr>
+            <th>Image</th>
+            <th>Name</th>
+            <th>Color</th>
+            <th>Size</th>
+            <th>Price</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="products-table-body">
+          <tr>
+            <td colspan="6">No products loaded.</td>
+          </tr>
+        </tbody>
+      </table>
 
-        <div class="panel">
-          <div class="panel-row">
-            <h3>Product List</h3>
-            <button type="button" id="refresh-products-btn">Refresh</button>
+      <section id="product-form-section" class="hidden">
+        <h3 id="product-form-title">Create Product</h3>
+        <form id="product-form">
+          <input type="hidden" id="product-id" name="id">
+
+          <label for="product-image">Image URL</label>
+          <input id="product-image" name="image" type="text" required>
+
+          <label for="product-name">Name</label>
+          <input id="product-name" name="name" type="text" required>
+
+          <label for="product-color">Color (hex)</label>
+          <input id="product-color" name="color" type="text" placeholder="#FFFFFF" required>
+
+          <label for="product-size">Size</label>
+          <input id="product-size" name="size" type="text" required>
+
+          <label for="product-price">Price</label>
+          <input id="product-price" name="price" type="number" step="0.01" min="0" required>
+
+          <div class="actions-row">
+            <button type="submit" id="save-product-btn">Save</button>
+            <button type="button" id="cancel-product-btn">Cancel</button>
           </div>
-          <ul id="products-list" class="entity-list"></ul>
-        </div>
+        </form>
+      </section>
+    </section>
+
+    <section id="stores-view" class="view hidden">
+      <h2>Stores</h2>
+
+      <div class="actions-row">
+        <button id="create-store-btn" type="button">Create Store</button>
+        <button id="refresh-stores-btn" type="button">Refresh</button>
+      </div>
+
+      <p id="stores-feedback" class="feedback" role="status" aria-live="polite"></p>
+
+      <table id="stores-table">
+        <thead>
+          <tr>
+            <th>Image</th>
+            <th>Name</th>
+            <th>Country Code</th>
+            <th>Temperature</th>
+            <th>Relative Humidity</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="stores-table-body">
+          <tr>
+            <td colspan="6">No stores loaded.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <section id="store-form-section" class="hidden">
+        <h3 id="store-form-title">Create Store</h3>
+        <form id="store-form">
+          <input type="hidden" id="store-id" name="id">
+
+          <label for="store-image">Image URL</label>
+          <input id="store-image" name="image" type="text" required>
+
+          <label for="store-name">Name</label>
+          <input id="store-name" name="name" type="text" required>
+
+          <label for="store-country-code">Country Code</label>
+          <input id="store-country-code" name="countryCode" type="text" maxlength="2" required>
+
+          <label for="store-temperature">Temperature</label>
+          <input id="store-temperature" name="temperature" type="number" step="0.1">
+
+          <label for="store-relative-humidity">Relative Humidity</label>
+          <input id="store-relative-humidity" name="relativeHumidity" type="number" step="0.1">
+
+          <label for="store-address-street">Address Street</label>
+          <input id="store-address-street" name="addressStreet" type="text" required>
+
+          <label for="store-address-city">Address City</label>
+          <input id="store-address-city" name="addressCity" type="text" required>
+
+          <label for="store-address-zip">Address ZIP</label>
+          <input id="store-address-zip" name="addressZip" type="text" required>
+
+          <label for="store-location-lng">Location Longitude</label>
+          <input id="store-location-lng" name="locationLng" type="number" step="any" required>
+
+          <label for="store-location-lat">Location Latitude</label>
+          <input id="store-location-lat" name="locationLat" type="number" step="any" required>
+
+          <label for="store-url">URL</label>
+          <input id="store-url" name="url" type="text" required>
+
+          <label for="store-telephone">Telephone</label>
+          <input id="store-telephone" name="telephone" type="text" required>
+
+          <label for="store-capacity">Capacity</label>
+          <input id="store-capacity" name="capacity" type="number" min="1" required>
+
+          <label for="store-description">Description</label>
+          <input id="store-description" name="description" type="text" required>
+
+          <div class="actions-row">
+            <button type="submit" id="save-store-btn">Save</button>
+            <button type="button" id="cancel-store-btn">Cancel</button>
+          </div>
+        </form>
       </section>
 
-      <section id="stores-view" class="view" aria-label="Stores view">
-        <div class="panel-row">
-          <h2>Stores</h2>
-          <button type="button" id="refresh-stores-btn">Refresh</button>
+      <section id="store-detail-section">
+        <h3>Store Detail</h3>
+        <div class="actions-row">
+          <select id="store-selector" aria-label="Select store"></select>
+          <button id="refresh-store-detail-btn" type="button">Refresh Detail</button>
+          <button id="add-shelf-btn" type="button">Add Shelf</button>
+          <button id="add-inventory-item-btn" type="button">Add Inventory Item</button>
         </div>
-        <ul id="stores-list" class="entity-list"></ul>
+        <p id="store-detail-feedback" class="feedback" role="status" aria-live="polite"></p>
+        <div id="store-shelves-container"></div>
       </section>
 
-      <section id="employees-view" class="view" aria-label="Employees view">
-        <div class="panel-row">
-          <h2>Employees</h2>
-          <button type="button" id="refresh-employees-btn">Refresh</button>
-        </div>
-        <p id="employees-note" class="muted">Employee endpoint may be unavailable in current backend build.</p>
-        <ul id="employees-list" class="entity-list"></ul>
+      <section id="notifications-section">
+        <h3>Notifications</h3>
+        <ul id="notifications-list">
+          <li class="empty-note">No notifications yet.</li>
+        </ul>
       </section>
+    </section>
 
-      <p id="status" class="status" role="status" aria-live="polite"></p>
-    </main>
+    <section id="employees-view" class="view hidden">
+      <h2>Employees</h2>
 
-    <script src="app.js"></script>
-  </body>
+      <div class="actions-row">
+        <button id="create-employee-btn" type="button">Create Employee</button>
+        <button id="refresh-employees-btn" type="button">Refresh</button>
+      </div>
+
+      <p id="employees-feedback" class="feedback" role="status" aria-live="polite"></p>
+
+      <table id="employees-table">
+        <thead>
+          <tr>
+            <th>Image</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Skills</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="employees-table-body">
+          <tr>
+            <td colspan="5">No employees loaded.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <section id="employee-form-section" class="hidden">
+        <h3 id="employee-form-title">Create Employee</h3>
+        <form id="employee-form">
+          <input type="hidden" id="employee-id" name="id">
+
+          <label for="employee-image">Image URL</label>
+          <input id="employee-image" name="image" type="text" required>
+
+          <label for="employee-name">Name</label>
+          <input id="employee-name" name="name" type="text" required>
+
+          <label for="employee-category">Category</label>
+          <input id="employee-category" name="category" type="text" required>
+
+          <label for="employee-skills">Skills (comma separated)</label>
+          <input id="employee-skills" name="skills" type="text" required>
+
+          <label for="employee-email">Email</label>
+          <input id="employee-email" name="email" type="email" required>
+
+          <label for="employee-date-of-contract">Date of Contract (ISO 8601)</label>
+          <input id="employee-date-of-contract" name="dateOfContract" type="text" placeholder="2026-03-30T10:00:00Z" required>
+
+          <label for="employee-username">Username</label>
+          <input id="employee-username" name="username" type="text" required>
+
+          <label for="employee-password">Password</label>
+          <input id="employee-password" name="password" type="password" required>
+
+          <label for="employee-ref-store">Store ID</label>
+          <input id="employee-ref-store" name="refStore" type="text" required>
+
+          <div class="actions-row">
+            <button type="submit" id="save-employee-btn">Save</button>
+            <button type="button" id="cancel-employee-btn">Cancel</button>
+          </div>
+        </form>
+      </section>
+    </section>
+  </main>
+
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script src="app.js"></script>
+</body>
 </html>
