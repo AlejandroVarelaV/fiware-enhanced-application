@@ -143,7 +143,7 @@ classDiagram
           <input id="product-name" name="name" type="text" required>
 
           <label for="product-color" data-i18n="products.form.colorHex">Color (hex)</label>
-          <input id="product-color" name="color" type="text" placeholder="#FFFFFF" required>
+          <input id="product-color" name="color" type="color" required>
 
           <label for="product-size" data-i18n="products.form.size">Size</label>
           <input id="product-size" name="size" type="text" required>
@@ -279,7 +279,7 @@ classDiagram
           <input id="store-telephone" name="telephone" type="text" required>
 
           <label for="store-capacity" data-i18n="stores.form.capacity">Capacity</label>
-          <input id="store-capacity" name="capacity" type="number" min="1" required>
+          <input id="store-capacity" name="capacity" type="number" min="0" required>
 
           <label for="store-description" data-i18n="stores.form.description">Description</label>
           <input id="store-description" name="description" type="text" required>
@@ -393,16 +393,25 @@ classDiagram
           <input id="employee-name" name="name" type="text" required>
 
           <label for="employee-category" data-i18n="employees.form.category">Category</label>
-          <input id="employee-category" name="category" type="text" required>
+          <select id="employee-category" name="category" required>
+            <option value="">Select category</option>
+            <option value="Manager">Manager</option>
+            <option value="Cashier">Cashier</option>
+            <option value="Warehouse">Warehouse</option>
+          </select>
 
-          <label for="employee-skills" data-i18n="employees.form.skills">Skills (comma separated)</label>
-          <input id="employee-skills" name="skills" type="text" required>
+          <label for="employee-skills" data-i18n="employees.form.skills">Skills</label>
+          <select id="employee-skills" name="skills" multiple required>
+            <option value="MachineryDriving">Machinery Driving</option>
+            <option value="WritingReports">Writing Reports</option>
+            <option value="CustomerRelationships">Customer Relationships</option>
+          </select>
 
           <label for="employee-email" data-i18n="employees.form.email">Email</label>
           <input id="employee-email" name="email" type="email" required>
 
-          <label for="employee-date-of-contract" data-i18n="employees.form.dateOfContract">Date of Contract (ISO 8601)</label>
-          <input id="employee-date-of-contract" name="dateOfContract" type="text" placeholder="2026-03-30T10:00:00Z" data-i18n-placeholder="employees.form.datePlaceholder" required>
+          <label for="employee-date-of-contract" data-i18n="employees.form.dateOfContract">Date of Contract</label>
+          <input id="employee-date-of-contract" name="dateOfContract" type="date" required>
 
           <label for="employee-username" data-i18n="employees.form.username">Username</label>
           <input id="employee-username" name="username" type="text" required>

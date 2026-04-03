@@ -338,11 +338,12 @@ button:hover {
 }
 
 .color-swatch {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 1px solid var(--color-border);
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  border: 1px solid #ccc;
   display: inline-block;
+  vertical-align: middle;
 }
 
 .store-group-row {
@@ -498,6 +499,92 @@ select {
 
 .store-photo-container:hover img {
   transform: scale(1.15) rotate(360deg);
+}
+
+/* Task A: Employee photo zoom */
+.employee-photo {
+  overflow: hidden;
+  display: inline-block;
+}
+
+.employee-photo img {
+  transition: transform 0.4s ease;
+  display: block;
+}
+
+.employee-photo:hover img {
+  transform: scale(1.25);
+}
+
+/* Task B: Progress bar colors by fill level */
+.progress-bar {
+  transition: background-color 0.3s ease;
+}
+
+.progress-bar[data-level="low"] {
+  background-color: #28a745;
+}
+
+.progress-bar[data-level="medium"] {
+  background-color: #ffc107;
+}
+
+.progress-bar[data-level="high"] {
+  background-color: #DA020E;
+}
+
+/* Task C1: Color swatch */
+.color-swatch {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  border: 1px solid #ccc;
+  vertical-align: middle;
+}
+
+/* Task C4: Skill icon tooltips */
+.skill-icon {
+  position: relative;
+  cursor: help;
+  margin: 0 4px;
+}
+
+.skill-icon:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+/* Task C3: Category icon styling */
+.category-icon {
+  font-size: 1.2em;
+  margin: 0 4px;
+}
+
+/* Task D: Price flash animation */
+@keyframes price-flash {
+  0% {
+    background-color: yellow;
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.price-flash {
+  animation: price-flash 0.8s ease-out;
+}
 }
 
 .store-weather-panel {
