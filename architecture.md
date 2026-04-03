@@ -40,6 +40,7 @@ Responsibilities:
 - Render Store detail using DOM logic with hierarchy Store -> Shelves -> InventoryItems.
 - Render Store detail weather and social context blocks (temperature, relativeHumidity, tweets).
 - Render Store detail photo container with CSS-only rotate+zoom hover animation.
+- Render Store detail immersive tour with lazy-loaded Three.js, OrbitControls, and Raycaster hover inspection.
 - Render Product detail using DOM template-row cloning (Store group row + Shelf row templates).
 - Execute Store detail actions (add Shelf, add InventoryItem, buy product).
 - Execute Product detail action to add InventoryItem to an eligible Shelf in the selected Store group.
@@ -328,6 +329,7 @@ The diagram highlights the current implemented production flow.
   - Shelf capacity progress bar.
   - Weather panel with icon/color-coded temperature and humidity values.
   - Tweets panel rendered using list-template cloning.
+  - Lazy-loaded Three.js tour container with interactive shelf/product hover overlay.
   - Store photo panel with CSS rotate+zoom hover animation.
   - Notifications panel container with red accent border.
   - Add Shelf, Add InventoryItem, and Buy product actions.
