@@ -86,3 +86,7 @@ The following Store attributes are externally provided through Orion context pro
 ## 4. Final Sync Statement
 
 This file is synchronized with the exact Mermaid definition currently rendered in the Home view of the frontend.
+
+## 5. Runtime Note
+
+The frontend networking fix for Docker deployment only changes how the UI reaches the backend and Socket.IO endpoint. It does not alter the entity schema, attributes, or relationships defined above.

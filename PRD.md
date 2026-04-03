@@ -72,6 +72,7 @@ Each requirement from the assignment and issue chain is marked with final implem
 - Store detail enhancements: weather badges, tweets list, real-time notifications panel, 3D tour, capacity bars, buy flow.
 - Product detail enhancements: grouped inventory and per-store add-to-shelf.
 - Global UX: sticky nav, theme toggle, EN/ES localization.
+- Runtime networking: the frontend resolves the API and Socket.IO base URL from the browser origin by default, and the Dockerized nginx frontend proxies `/api/` and `/socket.io/` to the backend container.
 
 ### 3.3 Real-Time and External Context
 - External context provider registration for Store environmental and tweets attributes.

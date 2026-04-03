@@ -11,11 +11,12 @@ United Supermarket is implemented as a FIWARE-centered architecture with these r
 5. Socket.IO channel - backend to browser real-time notification delivery.
 
 ### Component Diagram (Description)
-- Frontend calls Flask backend via REST endpoints under `/api/*`.
+- Frontend calls Flask backend via REST endpoints under `/api/*` through the nginx reverse proxy in the frontend container.
 - Flask backend calls Orion NGSIv2 endpoints for entity operations.
 - Orion resolves external Store attributes through registered provider at `http://tutorial:3000/api/v2`.
 - Orion sends subscription callbacks to backend notification endpoint.
 - Backend forwards callback payloads to connected clients through Socket.IO event `orion_notification`.
+- Frontend resolves the API and Socket.IO base URL at runtime from the browser origin, with a localhost:5000 fallback for direct development access.
 
 ## 2. Runtime Services (docker-compose)
 
@@ -24,6 +25,8 @@ United Supermarket is implemented as a FIWARE-centered architecture with these r
 - `tutorial` (ports 3002 and 3001; provider endpoint at `http://tutorial:3000/api/v2`)
 - `backend` (port 5000)
 - `frontend` (port 3000 mapped to nginx 80)
+
+Frontend nginx also proxies `/api/` and `/socket.io/` requests to the backend container so the browser can use same-origin requests on port 3000.
 
 ## 3. Complete Backend API Endpoint Table
 
