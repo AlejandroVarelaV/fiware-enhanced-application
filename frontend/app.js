@@ -603,6 +603,33 @@ const notificationsList = document.getElementById('notifications-list');
 
 const MAX_NOTIFICATIONS = 50;
 
+/* Task B: Update progress bar fill and level */
+function updateProgressBar(bar, pct) {
+  if (!bar) {
+    return;
+  }
+  const level = pct < 50 ? 'low' : (pct <= 80 ? 'medium' : 'high');
+  bar.dataset.level = level;
+  bar.style.width = `${pct}%`;
+}
+
+/* Task C2: Convert country code to flag emoji */
+function countryCodeToFlag(code) {
+  if (!code || code.length !== 2) {
+    return '';
+  }
+  const codeUpper = code.toUpperCase();
+  try {
+    const flagEmoji = String.fromCodePoint(
+      0x1F1E6 + codeUpper.charCodeAt(0) - 0x41,
+      0x1F1E6 + codeUpper.charCodeAt(1) - 0x41
+    );
+    return flagEmoji;
+  } catch (e) {
+    return '';
+  }
+}
+
 let productsCache = [];
 let storesCache = [];
 let employeesCache = [];
@@ -1065,8 +1092,8 @@ async function showProductDetail(productId) {
     pdProductColorSwatch.setAttribute('title', product.color || '');
     pdProductSize.textContent = `${t('pd.header.sizeLabel')}: ${product.size || ''}`;
     pdProductPrice.textContent = `${t('pd.header.priceLabel')}: ${String(product.price ?? '')}`;
-
-    if (groupedByStore.size === 0) {
+    pdProductPrice.dataset.productId = selectedProductId;
+    pdProductPrice.dataset.field = 'price';
       const row = document.createElement('tr');
       row.dataset.templateClone = 'true';
       const cell = document.createElement('td');
@@ -1327,7 +1354,11 @@ function renderProductsTable(products) {
     nameCell.appendChild(nameLink);
 
     const colorCell = document.createElement('td');
-    colorCell.textContent = product.color || '';
+    const colorSwatch = document.createElement('span');
+    colorSwatch.className = 'color-swatch';
+    colorSwatch.style.backgroundColor = product.color || 'transparent';
+    colorSwatch.setAttribute('title', product.color || '');
+    colorCell.appendChild(colorSwatch);
 
     const sizeCell = document.createElement('td');
     sizeCell.textContent = product.size || '';
@@ -1335,6 +1366,7 @@ function renderProductsTable(products) {
     const priceCell = document.createElement('td');
     priceCell.className = 'product-price-cell';
     priceCell.dataset.productId = product.id || '';
+    priceCell.dataset.field = 'price';
     priceCell.textContent = String(product.price ?? '');
 
     const actionsCell = document.createElement('td');
@@ -1523,16 +1555,9 @@ function renderStoresTable(stores) {
     nameCell.textContent = store.name || '';
 
     const countryCodeCell = document.createElement('td');
-    countryCodeCell.textContent = store.countryCode || '';
-
-    const temperatureCell = document.createElement('td');
-    temperatureCell.textContent = String(store.temperature ?? '');
-
-    const relativeHumidityCell = document.createElement('td');
-    relativeHumidityCell.textContent = String(store.relativeHumidity ?? '');
-
-    const actionsCell = createActionsCell(
-      () => openEditStoreForm(store.id),
+    const countryCode = store.countryCode || '';
+    const flagEmoji = countryCodeToFlag(countryCode);
+    countryCodeCell.textContent = flagEmoji ? `${flagEmoji} ${countryCode}` : countryCode;
       () => deleteStore(store.id),
     );
 
@@ -2256,8 +2281,8 @@ function renderStoreShelves(shelves, inventoryItems, productMap) {
     capacityTrack.className = 'capacity-track';
 
     const capacityFill = document.createElement('div');
-    capacityFill.className = 'capacity-fill';
-    capacityFill.style.width = `${fillPercent}%`;
+    capacityFill.className = 'progress-bar capacity-fill';
+    updateProgressBar(capacityFill, fillPercent);
 
     const capacityLabel = document.createElement('span');
     capacityLabel.textContent = `${usedCapacity}/${maxCapacity || 0} (${fillPercent}%)`;
@@ -2302,6 +2327,7 @@ function renderStoreShelves(shelves, inventoryItems, productMap) {
       const priceValue = document.createElement('span');
       priceValue.className = 'inventory-price-value';
       priceValue.dataset.productId = item.refProduct || '';
+      priceValue.dataset.field = 'price';
       priceValue.textContent = String(product.price ?? '');
       const details = document.createTextNode(` | ${t('storeDetail.meta.size')}: ${product.size || ''} | ${t('storeDetail.meta.color')}: ${product.color || ''} | ${t('storeDetail.meta.shelfCount')}: ${shelfCount} | ${t('storeDetail.meta.stockCount')}: ${stockCount}`);
 
@@ -2553,18 +2579,52 @@ function renderEmployeesTable(employees) {
   employees.forEach((employee) => {
     const row = document.createElement('tr');
 
-    const imageCell = createImageCell(employee.image, employee.name);
+    const imageCell = document.createElement('td');
+    const photoWrapper = document.createElement('div');
+    photoWrapper.className = 'employee-photo';
+    const image = document.createElement('img');
+    image.className = 'entity-image';
+    image.src = employee.image || '';
+    image.alt = employee.name || t('common.entityImageAlt');
+    photoWrapper.appendChild(image);
+    imageCell.appendChild(photoWrapper);
 
     const nameCell = document.createElement('td');
     nameCell.textContent = employee.name || '';
 
     const categoryCell = document.createElement('td');
-    categoryCell.textContent = employee.category || '';
+    const categoryIcon = document.createElement('i');
+    categoryIcon.className = 'category-icon fa-solid';
+    const categoryValue = employee.category || '';
+    if (categoryValue === 'Manager') {
+      categoryIcon.classList.add('fa-user-tie');
+    } else if (categoryValue === 'Cashier') {
+      categoryIcon.classList.add('fa-cash-register');
+    } else if (categoryValue === 'Warehouse') {
+      categoryIcon.classList.add('fa-warehouse');
+    }
+    categoryCell.appendChild(categoryIcon);
+    categoryCell.appendChild(document.createTextNode(` ${categoryValue}`));
 
     const skillsCell = document.createElement('td');
-    skillsCell.textContent = Array.isArray(employee.skills)
-      ? employee.skills.join(', ')
-      : (employee.skills || '');
+    const skills = Array.isArray(employee.skills) ? employee.skills : (employee.skills ? [employee.skills] : []);
+    if (skills.length > 0) {
+      skills.forEach((skill) => {
+        const skillIcon = document.createElement('i');
+        skillIcon.className = 'skill-icon fa-solid';
+        skillIcon.setAttribute('data-tooltip', skill);
+        if (skill === 'MachineryDriving') {
+          skillIcon.classList.add('fa-truck');
+        } else if (skill === 'WritingReports') {
+          skillIcon.classList.add('fa-file-alt');
+        } else if (skill === 'CustomerRelationships') {
+          skillIcon.classList.add('fa-handshake');
+        }
+        skillsCell.appendChild(skillIcon);
+      });
+    } else {
+      skillsCell.textContent = '-';
+    }
 
     const actionsCell = createActionsCell(
       () => openEditEmployeeForm(employee.id),
@@ -2591,7 +2651,12 @@ function openCreateEmployeeForm() {
   employeeImageInput.value = '';
   employeeNameInput.value = '';
   employeeCategoryInput.value = '';
-  employeeSkillsInput.value = '';
+  /* Reset multi-select */
+  if (employeeSkillsInput.selectedOptions) {
+    Array.from(employeeSkillsInput.selectedOptions).forEach((opt) => opt.selected = false);
+  } else {
+    employeeSkillsInput.value = '';
+  }
   employeeEmailInput.value = '';
   employeeDateOfContractInput.value = '';
   employeeUsernameInput.value = '';
@@ -2616,9 +2681,15 @@ function openEditEmployeeForm(employeeId) {
   employeeImageInput.value = employee.image || '';
   employeeNameInput.value = employee.name || '';
   employeeCategoryInput.value = employee.category || '';
-  employeeSkillsInput.value = Array.isArray(employee.skills)
-    ? employee.skills.join(', ')
-    : (employee.skills || '');
+  /* Set multi-select values */
+  const employeeSkills = Array.isArray(employee.skills) ? employee.skills : (employee.skills ? [employee.skills] : []);
+  if (employeeSkillsInput.selectedOptions) {
+    Array.from(employeeSkillsInput.options).forEach((opt) => {
+      opt.selected = employeeSkills.includes(opt.value);
+    });
+  } else {
+    employeeSkillsInput.value = employeeSkills.join(', ');
+  }
   employeeEmailInput.value = employee.email || '';
   employeeDateOfContractInput.value = employee.dateOfContract || '';
   employeeUsernameInput.value = employee.username || '';
@@ -2635,10 +2706,18 @@ function closeEmployeeForm() {
 }
 
 function getEmployeePayloadFromForm() {
-  const skills = employeeSkillsInput.value
-    .split(',')
-    .map((skill) => skill.trim())
-    .filter((skill) => skill.length > 0);
+  /* Handle skills from multi-select element */
+  let skills = [];
+  if (employeeSkillsInput && employeeSkillsInput.selectedOptions) {
+    /* Multi-select */
+    skills = Array.from(employeeSkillsInput.selectedOptions).map((opt) => opt.value);
+  } else if (employeeSkillsInput && employeeSkillsInput.value) {
+    /* Fallback: if not a multi-select, parse as comma-separated */
+    skills = employeeSkillsInput.value
+      .split(',')
+      .map((skill) => skill.trim())
+      .filter((skill) => skill.length > 0);
+  }
 
   return {
     image: employeeImageInput.value.trim(),
@@ -2952,6 +3031,25 @@ function initRealtimeNotifications() {
     } catch (error) {
       console.error('Error handling orion_notification event:', error);
     }
+  });
+
+  /* Task D: Socket.IO price propagation handler */
+  socket.on('price_change', (data) => {
+    if (!data || !data.product_id) {
+      return;
+    }
+    const { product_id, new_price } = data;
+    const escapedProductId = getEscapedSelectorValue(product_id);
+    const nextPrice = String(new_price);
+
+    /* Update all price elements with data-product-id and data-field="price" */
+    const priceElements = document.querySelectorAll(`[data-product-id="${escapedProductId}"][data-field="price"]`);
+    priceElements.forEach((element) => {
+      element.textContent = nextPrice;
+      element.classList.remove('price-flash');
+      void element.offsetWidth; /* trigger reflow */
+      element.classList.add('price-flash');
+    });
   });
 }
 
