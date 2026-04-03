@@ -153,7 +153,17 @@ const translations = {
     'employees.form.save': 'Save',
     'employees.form.cancel': 'Cancel',
     'storesMap.title': 'Stores Map',
-    'storesMap.placeholder': 'Stores Map will be implemented in Issue 8.',
+    'storesMap.hint': 'Hover a marker to preview store conditions, click to open store detail.',
+    'storesMap.aria.map': 'Stores map',
+    'storesMap.card.imageAlt': 'Store photo',
+    'storesMap.card.country': 'Country',
+    'storesMap.card.temperature': 'Temperature',
+    'storesMap.card.humidity': 'Humidity',
+    'storesMap.card.noData': 'No data',
+    'storesMap.card.unnamedStore': 'Unnamed store',
+    'storesMap.card.unknownCountry': 'Unknown country',
+    'storesMap.empty.noMappableStores': 'No stores with valid coordinates to display on the map.',
+    'storesMap.error.leafletUnavailable': 'Leaflet failed to load. Refresh the page and try again.',
     'common.edit': 'Edit',
     'common.delete': 'Delete',
     'common.entityImageAlt': 'entity image',
@@ -347,7 +357,17 @@ const translations = {
     'employees.form.save': 'Guardar',
     'employees.form.cancel': 'Cancelar',
     'storesMap.title': 'Mapa de Tiendas',
-    'storesMap.placeholder': 'El Mapa de Tiendas se implementara en la Issue 8.',
+    'storesMap.hint': 'Pasa el cursor sobre un marcador para previsualizar la tienda y haz clic para abrir su detalle.',
+    'storesMap.aria.map': 'Mapa de tiendas',
+    'storesMap.card.imageAlt': 'Foto de la tienda',
+    'storesMap.card.country': 'Pais',
+    'storesMap.card.temperature': 'Temperatura',
+    'storesMap.card.humidity': 'Humedad',
+    'storesMap.card.noData': 'Sin datos',
+    'storesMap.card.unnamedStore': 'Tienda sin nombre',
+    'storesMap.card.unknownCountry': 'Pais desconocido',
+    'storesMap.empty.noMappableStores': 'No hay tiendas con coordenadas validas para mostrar en el mapa.',
+    'storesMap.error.leafletUnavailable': 'Leaflet no pudo cargarse. Recarga la pagina e intentalo de nuevo.',
     'common.edit': 'Editar',
     'common.delete': 'Eliminar',
     'common.entityImageAlt': 'imagen de entidad',
@@ -550,6 +570,14 @@ const storeTweetTemplate = document.getElementById('store-tweet-template');
 const addShelfButton = document.getElementById('add-shelf-btn');
 const addInventoryItemButton = document.getElementById('add-inventory-item-btn');
 const refreshStoreDetailButton = document.getElementById('refresh-store-detail-btn');
+const storesMapView = document.getElementById('stores-map-view');
+const leafletMapElement = document.getElementById('leaflet-map');
+const mapHoverCard = document.getElementById('map-hover-card');
+const mapCardImg = document.getElementById('map-card-img');
+const mapCardName = document.getElementById('map-card-name');
+const mapCardCountry = document.getElementById('map-card-country');
+const mapCardTemp = document.getElementById('map-card-temp');
+const mapCardHumidity = document.getElementById('map-card-humidity');
 
 const employeesFeedback = document.getElementById('employees-feedback');
 const employeesTableBody = document.getElementById('employees-table-body');
@@ -582,6 +610,10 @@ let shelvesCache = [];
 let inventoryItemsCache = [];
 let selectedStoreId = '';
 let selectedProductId = '';
+let storesMapInstance = null;
+let storesMapMarkersLayer = null;
+let pendingStoreIdFromMap = '';
+let hoveredStoreOnMap = null;
 
 const storeTourState = {
   active: false,
@@ -705,6 +737,10 @@ function refreshUiLanguageStrings() {
     showProductDetail(selectedProductId);
   }
 
+  if (hoveredStoreOnMap) {
+    updateMapHoverCard(hoveredStoreOnMap);
+  }
+
   refreshStoreTourUi();
 }
 
@@ -715,12 +751,158 @@ function bindIfPresent(element, eventName, handler) {
   element.addEventListener(eventName, handler);
 }
 
-function showView(viewId) {
+function escapeHtmlAttribute(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function getStoreCoordinates(store) {
+  const coordinates = store && store.location && Array.isArray(store.location.coordinates)
+    ? store.location.coordinates
+    : null;
+
+  if (!coordinates || coordinates.length < 2) {
+    return null;
+  }
+
+  const lng = Number(coordinates[0]);
+  const lat = Number(coordinates[1]);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    return null;
+  }
+
+  return { lat, lng };
+}
+
+function formatMapHumidityValue(humidity) {
+  const numericHumidity = Number(humidity);
+  if (!Number.isFinite(numericHumidity)) {
+    return t('storesMap.card.noData');
+  }
+
+  if (numericHumidity >= 0 && numericHumidity <= 1) {
+    return `${Math.round(numericHumidity * 100)}%`;
+  }
+
+  return `${Math.round(numericHumidity)}%`;
+}
+
+function hideMapHoverCard() {
+  hoveredStoreOnMap = null;
+  if (!mapHoverCard) {
+    return;
+  }
+
+  mapHoverCard.classList.add('hidden');
+}
+
+function updateMapHoverCard(store) {
+  if (!store || !mapHoverCard || !mapCardImg || !mapCardName || !mapCardCountry || !mapCardTemp || !mapCardHumidity) {
+    return;
+  }
+
+  hoveredStoreOnMap = store;
+
+  mapCardImg.src = store.image || '';
+  mapCardImg.alt = store.name || t('storesMap.card.imageAlt');
+  mapCardName.textContent = store.name || t('storesMap.card.unnamedStore');
+  mapCardCountry.textContent = `${t('storesMap.card.country')}: ${store.countryCode || t('storesMap.card.unknownCountry')}`;
+
+  const hasTemperature = Number.isFinite(Number(store.temperature));
+  mapCardTemp.textContent = `${t('storesMap.card.temperature')}: ${hasTemperature ? `${Number(store.temperature)} C` : t('storesMap.card.noData')}`;
+  mapCardHumidity.textContent = `${t('storesMap.card.humidity')}: ${formatMapHumidityValue(store.relativeHumidity)}`;
+
+  mapHoverCard.classList.remove('hidden');
+}
+
+function cleanupStoresMap() {
+  hideMapHoverCard();
+
+  if (storesMapInstance) {
+    storesMapInstance.remove();
+  }
+
+  storesMapInstance = null;
+  storesMapMarkersLayer = null;
+}
+
+function initStoresMap(stores) {
+  if (!leafletMapElement || !storesMapView || !Array.isArray(stores)) {
+    return;
+  }
+
+  if (typeof window.L === 'undefined') {
+    setStoresFeedback(t('storesMap.error.leafletUnavailable'), true);
+    return;
+  }
+
+  if (storesMapInstance) {
+    storesMapInstance.invalidateSize();
+    return;
+  }
+
+  const storesWithCoordinates = stores
+    .map((store) => ({ store, coordinates: getStoreCoordinates(store) }))
+    .filter((entry) => entry.coordinates);
+
+  const center = storesWithCoordinates.length > 0
+    ? {
+      lat: storesWithCoordinates.reduce((sum, entry) => sum + entry.coordinates.lat, 0) / storesWithCoordinates.length,
+      lng: storesWithCoordinates.reduce((sum, entry) => sum + entry.coordinates.lng, 0) / storesWithCoordinates.length,
+    }
+    : { lat: 20, lng: 0 };
+
+  storesMapInstance = window.L.map('leaflet-map').setView([center.lat, center.lng], storesWithCoordinates.length > 0 ? 3 : 2);
+
+  window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors',
+  }).addTo(storesMapInstance);
+
+  storesMapMarkersLayer = window.L.layerGroup().addTo(storesMapInstance);
+
+  if (storesWithCoordinates.length === 0) {
+    setStoresFeedback(t('storesMap.empty.noMappableStores'), true);
+  }
+
+  storesWithCoordinates.forEach(({ store, coordinates }) => {
+    const markerIcon = window.L.divIcon({
+      className: 'store-map-marker-wrapper',
+      html: `<div class="store-map-marker"><img class="store-map-marker-image" src="${escapeHtmlAttribute(store.image)}" alt=""></div>`,
+      iconSize: [52, 52],
+      iconAnchor: [26, 26],
+    });
+
+    const marker = window.L.marker([coordinates.lat, coordinates.lng], { icon: markerIcon });
+    marker.on('mouseover', () => updateMapHoverCard(store));
+    marker.on('mouseout', () => hideMapHoverCard());
+    marker.on('click', () => {
+      pendingStoreIdFromMap = store.id || '';
+      showView('stores-view');
+    });
+    marker.addTo(storesMapMarkersLayer);
+  });
+
+  window.setTimeout(() => {
+    if (storesMapInstance) {
+      storesMapInstance.invalidateSize();
+    }
+  }, 0);
+}
+
+async function showView(viewId) {
   if (viewId !== 'stores-view') {
     cleanupStoreTour();
     if (storeTourContainer) {
       storeTourContainer.classList.add('tour-hidden');
     }
+  }
+
+  if (viewId !== 'stores-map-view') {
+    cleanupStoresMap();
   }
 
   views.forEach((view) => {
@@ -740,15 +922,24 @@ function showView(viewId) {
   });
 
   if (viewId === 'products-view') {
-    loadProducts();
+    await loadProducts();
   }
 
   if (viewId === 'stores-view') {
-    loadStores();
+    const preferredStoreId = pendingStoreIdFromMap || selectedStoreId;
+    pendingStoreIdFromMap = '';
+    await loadStores(preferredStoreId);
+  }
+
+  if (viewId === 'stores-map-view') {
+    if (storesCache.length === 0) {
+      await loadStores(selectedStoreId);
+    }
+    initStoresMap(storesCache);
   }
 
   if (viewId === 'employees-view') {
-    loadEmployees();
+    await loadEmployees();
   }
 }
 
@@ -1290,7 +1481,7 @@ function setStoresFeedback(message, isError = false) {
   storesFeedback.style.color = isError ? 'red' : 'inherit';
 }
 
-async function loadStores() {
+async function loadStores(preferredStoreId = selectedStoreId) {
   setStoresFeedback(t('status.loadingStores'));
 
   try {
@@ -1302,7 +1493,7 @@ async function loadStores() {
     storesCache = await response.json();
     renderStoresTable(storesCache);
     setStoresFeedback(t('status.loadedStores', { count: storesCache.length }));
-    await loadStoreDetailData(selectedStoreId);
+    await loadStoreDetailData(preferredStoreId);
   } catch (error) {
     renderStoresTable([]);
     renderStoreSelector('');
