@@ -87,7 +87,7 @@ Implemented state after Issue 5:
 
 ### FR-4. Store Detail View
 The Store detail page shall include all items below:
-1. Store location rendered on a map using Leaflet.
+1. Store location rendered on a map using Leaflet. Implemented in Issue 8.
 2. Immersive virtual tour of the Store using Three.js, showing Shelves and contained Products, including:
    - Units per shelf
    - Total stock units
@@ -125,7 +125,8 @@ Implemented state after Issue 6:
 - Temperature and relative humidity are rendered with icon and color coding based on configured ranges.
 - Store detail includes a tweets section rendered from Store `tweets` data with an X/Twitter icon per item.
 - Store notifications are displayed inside a dedicated panel container with Manchester United red left-border styling.
-- Leaflet map and Three.js immersive store tour remain pending for their dedicated issues.
+- Three.js immersive store tour is now implemented in Issue 7 with lazy-loaded CDN modules, interactive hover inspection, and canvas-scoped cleanup.
+- Leaflet map remains pending for Issue 8.
 
 ## 4.3 Home and Global Navigation
 
@@ -317,7 +318,7 @@ This issue introduces no new product features and no backend business-logic chan
 9. As a user, I want to switch between Dark and Light mode so that I can choose comfortable visual settings.
 10. As a user, I want a Stores Map with hover cards and click-through navigation so that I can spatially explore Store information.
 11. As a user, I want Store location displayed on detail view map so that I can verify geographic placement.
-12. As a user, I want an immersive Three.js Store tour so that I can inspect shelf/product distribution visually.
+12. As a user, I want an immersive Three.js Store tour so that I can inspect shelf/product distribution visually. Implemented in Issue 7.
 13. As an operations user, I want to see tweets and environmental external context for each Store so that I can include external signals in decisions.
 14. As an operations user, I want real-time low-stock and price-change notifications so that I can react without refreshing pages.
 15. As an operations user, I want product price updates propagated to all relevant views so that all displayed data remains synchronized.
@@ -348,6 +349,7 @@ Frontend (Issues 2C, 2D + Store detail completion):
 - Base frontend implemented as vanilla HTML/CSS/JavaScript (no frameworks).
 - CRUD views implemented for Products, Stores, and Employees.
 - Store detail implemented with grouped rendering: Store -> Shelves -> InventoryItems.
+- Store detail now includes a lazy-loaded Three.js immersive tour rendered from the same Store, Shelf, Product, and InventoryItem data used in the grouped view.
 - Store detail shows Products inside each Shelf with attributes:
    - image
    - name
@@ -402,5 +404,4 @@ Frontend (Issue 4 - Global UX theme system):
 ### 8.2 Pending Features
 
 - Store map view (Leaflet) and store-detail map section.
-- Three.js immersive store visualization.
-- Advanced UI features requested by assignment that are not yet completed beyond Issue 4 baseline.
+- Advanced UI features requested by assignment that are not yet completed beyond the implemented Store detail tour and Issue 4 baseline.

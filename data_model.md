@@ -328,12 +328,13 @@ This initialization baseline ensures all mandatory UI views and grouping behavio
 - Orion subscriptions are implemented for Product price changes and low stock alerts.
 - Backend notification reception and logging are implemented.
 - Frontend renders Store detail grouped by Shelf and InventoryItem using this model.
+- Frontend renders a lazy-loaded Three.js Store tour using existing Store, Shelf, Product, and InventoryItem fields; no entity schema changes are required.
 - Purchase flow uses backend atomic buy endpoint (`/api/inventory-items/<id>/buy`) that forwards Orion raw `$inc` payload for `shelfCount` and `stockCount`.
 - Frontend Home view renders this Mermaid class diagram with all entity attributes and relationship multiplicities.
 
 ### 10.2 Pending
 
-- Advanced visualization layers (Store map interactions and immersive 3D tour requirements) do not alter this entity model and remain outside current implemented UI scope.
+- Advanced visualization layers (Store map interactions) do not alter this entity model and remain outside current implemented UI scope.
 
 ## 10.3 Issue 4 UX Alignment (Non-Entity State)
 
