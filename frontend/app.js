@@ -1113,6 +1113,7 @@ async function showProductDetail(productId) {
     pdProductPrice.textContent = `${t('pd.header.priceLabel')}: ${String(product.price ?? '')}`;
     pdProductPrice.dataset.productId = selectedProductId;
     pdProductPrice.dataset.field = 'price';
+    if (groupedByStore.length === 0) {
       const row = document.createElement('tr');
       row.dataset.templateClone = 'true';
       const cell = document.createElement('td');
@@ -1577,8 +1578,26 @@ function renderStoresTable(stores) {
     const countryCode = store.countryCode || '';
     const flagEmoji = countryCodeToFlag(countryCode);
     countryCodeCell.textContent = flagEmoji ? `${flagEmoji} ${countryCode}` : countryCode;
-      () => deleteStore(store.id),
-    );
+
+    const temperatureCell = document.createElement('td');
+    temperatureCell.textContent = store.temperature ?? '';
+
+    const relativeHumidityCell = document.createElement('td');
+    relativeHumidityCell.textContent = store.relativeHumidity ?? '';
+
+    const actionsCell = document.createElement('td');
+    const editButton = document.createElement('button');
+    editButton.type = 'button';
+    editButton.textContent = t('common.edit');
+    editButton.addEventListener('click', () => openEditStoreForm(store.id));
+
+    const deleteButton = document.createElement('button');
+    deleteButton.type = 'button';
+    deleteButton.textContent = t('common.delete');
+    deleteButton.addEventListener('click', () => deleteStore(store.id));
+
+    actionsCell.appendChild(editButton);
+    actionsCell.appendChild(deleteButton);
 
     row.appendChild(imageCell);
     row.appendChild(nameCell);
