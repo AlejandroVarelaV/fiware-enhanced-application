@@ -37,6 +37,11 @@ Operational/base attributes needed by required views:
 - address: StructuredValue (postal address)
 - location: geo:json Point (latitude/longitude)
 
+Stores Map usage notes (Issue 8):
+- `location` is required to place Store markers on the Leaflet map.
+- `image` is used as marker visual content and hover-card image.
+- `countryCode`, `temperature`, and `relativeHumidity` are rendered in the map hover card.
+
 Issue 1B backend CRUD fields for Store:
 - name
 - image
@@ -177,12 +182,13 @@ Additional contextual relation used in data access:
 1. countryCode must be exactly two characters.
 2. skills must contain only allowed enum values.
 3. Product color must be stored as RGB hexadecimal text.
-4. An Employee must always reference one valid Store.
-5. A Shelf must always reference one valid Store.
-6. An InventoryItem must reference valid Product, Shelf, and Store entities.
-7. In Product detail view, adding InventoryItem is limited to Shelves in the selected Store that do not already contain that Product.
-8. In Product detail view, a newly created InventoryItem starts with `shelfCount=1` and `stockCount=1`.
-9. In Store detail view, adding InventoryItem to Shelf is limited to Products not already present in that Shelf.
+4. Store `location` should contain valid numeric longitude and latitude values for map rendering.
+5. An Employee must always reference one valid Store.
+6. A Shelf must always reference one valid Store.
+7. An InventoryItem must reference valid Product, Shelf, and Store entities.
+8. In Product detail view, adding InventoryItem is limited to Shelves in the selected Store that do not already contain that Product.
+9. In Product detail view, a newly created InventoryItem starts with `shelfCount=1` and `stockCount=1`.
+10. In Store detail view, adding InventoryItem to Shelf is limited to Products not already present in that Shelf.
 
 Issue 1C backend enforcement scope for constraints 4-6:
 - Relationship validation checks only that referenced entities exist in Orion.
