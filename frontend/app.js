@@ -1,5 +1,24 @@
-const API_BASE = 'http://localhost:5000';
-const SOCKET_BASE = 'http://localhost:5000';
+const runtimeConfig = (typeof window !== 'undefined' && window.__APP_CONFIG__) || {};
+
+const normalizeBaseUrl = (value) => {
+  if (typeof value !== 'string') {
+    return '';
+  }
+
+  return value.replace(/\/$/, '');
+};
+
+const getDefaultBackendBaseUrl = () => {
+  if (typeof window === 'undefined' || !window.location) {
+    return 'http://localhost:5000';
+  }
+
+  const { origin } = window.location;
+  return origin && origin !== 'null' ? origin : 'http://localhost:5000';
+};
+
+const API_BASE = normalizeBaseUrl(runtimeConfig.apiBaseUrl) || getDefaultBackendBaseUrl();
+const SOCKET_BASE = normalizeBaseUrl(runtimeConfig.socketBaseUrl) || API_BASE;
 
 const STORAGE_THEME_KEY = 'us_theme';
 const STORAGE_LANG_KEY = 'us_lang';
@@ -2976,7 +2995,7 @@ function initRealtimeNotifications() {
     return;
   }
 
-  const socket = window.location.origin === SOCKET_BASE ? io() : io(SOCKET_BASE);
+  const socket = io(SOCKET_BASE);
 
   socket.on('connect', () => {
     console.log('Socket connected');
