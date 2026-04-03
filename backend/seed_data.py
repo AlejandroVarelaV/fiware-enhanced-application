@@ -36,23 +36,23 @@ def seed_data(app=None):
             return
 
         products_data = [
-            {'id': 'product-001', 'name': 'Red Apple', 'image': '/img/products/apple.png', 'size': '1kg', 'price': 2.5, 'color': '#D12A2A'},
-            {'id': 'product-002', 'name': 'Banana Pack', 'image': '/img/products/banana.png', 'size': '1kg', 'price': 2.1, 'color': '#F2D22E'},
-            {'id': 'product-003', 'name': 'Whole Milk', 'image': '/img/products/milk.png', 'size': '1L', 'price': 1.6, 'color': '#F4F4F4'},
-            {'id': 'product-004', 'name': 'Brown Bread', 'image': '/img/products/bread.png', 'size': '500g', 'price': 1.4, 'color': '#8B5A2B'},
-            {'id': 'product-005', 'name': 'White Rice', 'image': '/img/products/rice.png', 'size': '1kg', 'price': 2.9, 'color': '#EFEDE7'},
-            {'id': 'product-006', 'name': 'Olive Oil', 'image': '/img/products/oil.png', 'size': '1L', 'price': 5.8, 'color': '#B8A22A'},
-            {'id': 'product-007', 'name': 'Coffee Beans', 'image': '/img/products/coffee.png', 'size': '500g', 'price': 7.2, 'color': '#4E342E'},
-            {'id': 'product-008', 'name': 'Orange Juice', 'image': '/img/products/juice.png', 'size': '1L', 'price': 2.7, 'color': '#F08C00'},
-            {'id': 'product-009', 'name': 'Tomato Sauce', 'image': '/img/products/sauce.png', 'size': '350g', 'price': 1.9, 'color': '#C62828'},
-            {'id': 'product-010', 'name': 'Pasta', 'image': '/img/products/pasta.png', 'size': '500g', 'price': 1.3, 'color': '#E9D8A6'},
+            {'id': 'product-001', 'name': 'Red Apple', 'image': 'https://picsum.photos/seed/red-apple-product/640/480', 'size': '1kg', 'price': 2.5, 'color': '#D12A2A'},
+            {'id': 'product-002', 'name': 'Banana Pack', 'image': 'https://picsum.photos/seed/banana-pack-product/640/480', 'size': '1kg', 'price': 2.1, 'color': '#F2D22E'},
+            {'id': 'product-003', 'name': 'Whole Milk', 'image': 'https://picsum.photos/seed/whole-milk-product/640/480', 'size': '1L', 'price': 1.6, 'color': '#F4F4F4'},
+            {'id': 'product-004', 'name': 'Brown Bread', 'image': 'https://picsum.photos/seed/brown-bread-product/640/480', 'size': '500g', 'price': 1.4, 'color': '#8B5A2B'},
+            {'id': 'product-005', 'name': 'White Rice', 'image': 'https://picsum.photos/seed/white-rice-product/640/480', 'size': '1kg', 'price': 2.9, 'color': '#EFEDE7'},
+            {'id': 'product-006', 'name': 'Olive Oil', 'image': 'https://picsum.photos/seed/olive-oil-product/640/480', 'size': '1L', 'price': 5.8, 'color': '#B8A22A'},
+            {'id': 'product-007', 'name': 'Coffee Beans', 'image': 'https://picsum.photos/seed/coffee-beans-product/640/480', 'size': '500g', 'price': 7.2, 'color': '#4E342E'},
+            {'id': 'product-008', 'name': 'Orange Juice', 'image': 'https://picsum.photos/seed/orange-juice-product/640/480', 'size': '1L', 'price': 2.7, 'color': '#F08C00'},
+            {'id': 'product-009', 'name': 'Tomato Sauce', 'image': 'https://picsum.photos/seed/tomato-sauce-product/640/480', 'size': '350g', 'price': 1.9, 'color': '#C62828'},
+            {'id': 'product-010', 'name': 'Pasta', 'image': 'https://picsum.photos/seed/pasta-product/640/480', 'size': '500g', 'price': 1.3, 'color': '#E9D8A6'},
         ]
 
         stores_data = [
             {
                 'id': 'store-001',
                 'name': 'North Market',
-                'image': '/img/stores/north.png',
+                'image': 'https://picsum.photos/seed/north-market/640/480',
                 'address': {'streetAddress': '1 North Ave', 'addressLocality': 'Springfield'},
                 'location': {'type': 'Point', 'coordinates': [-3.7038, 40.4168]},
                 'url': 'https://north.example.com',
@@ -67,7 +67,7 @@ def seed_data(app=None):
             {
                 'id': 'store-002',
                 'name': 'South Market',
-                'image': '/img/stores/south.png',
+                'image': 'https://picsum.photos/seed/south-market/640/480',
                 'address': {'streetAddress': '25 South Blvd', 'addressLocality': 'Springfield'},
                 'location': {'type': 'Point', 'coordinates': [-3.6938, 40.4068]},
                 'url': 'https://south.example.com',
@@ -82,7 +82,7 @@ def seed_data(app=None):
             {
                 'id': 'store-003',
                 'name': 'East Market',
-                'image': '/img/stores/east.png',
+                'image': 'https://picsum.photos/seed/east-market/640/480',
                 'address': {'streetAddress': '14 East St', 'addressLocality': 'Springfield'},
                 'location': {'type': 'Point', 'coordinates': [-3.6838, 40.4168]},
                 'url': 'https://east.example.com',
@@ -97,7 +97,7 @@ def seed_data(app=None):
             {
                 'id': 'store-004',
                 'name': 'West Market',
-                'image': '/img/stores/west.png',
+                'image': 'https://picsum.photos/seed/west-market/640/480',
                 'address': {'streetAddress': '50 West Rd', 'addressLocality': 'Springfield'},
                 'location': {'type': 'Point', 'coordinates': [-3.7138, 40.4168]},
                 'url': 'https://west.example.com',
@@ -115,7 +115,7 @@ def seed_data(app=None):
             {
                 'id': 'employee-001',
                 'name': 'Alex Martin',
-                'image': '/img/employees/alex.png',
+                'image': 'https://i.pravatar.cc/150/1',
                 'category': 'Manager',
                 'email': 'alex.martin@example.com',
                 'dateOfContract': '2024-01-15T09:00:00Z',
@@ -127,7 +127,7 @@ def seed_data(app=None):
             {
                 'id': 'employee-002',
                 'name': 'Bea Lopez',
-                'image': '/img/employees/bea.png',
+                'image': 'https://i.pravatar.cc/150/2',
                 'category': 'Operator',
                 'email': 'bea.lopez@example.com',
                 'dateOfContract': '2024-02-20T09:00:00Z',
@@ -139,7 +139,7 @@ def seed_data(app=None):
             {
                 'id': 'employee-003',
                 'name': 'Chris Vega',
-                'image': '/img/employees/chris.png',
+                'image': 'https://i.pravatar.cc/150/3',
                 'category': 'Supervisor',
                 'email': 'chris.vega@example.com',
                 'dateOfContract': '2024-03-10T09:00:00Z',
@@ -151,7 +151,7 @@ def seed_data(app=None):
             {
                 'id': 'employee-004',
                 'name': 'Dana Ruiz',
-                'image': '/img/employees/dana.png',
+                'image': 'https://i.pravatar.cc/150/4',
                 'category': 'Clerk',
                 'email': 'dana.ruiz@example.com',
                 'dateOfContract': '2024-04-05T09:00:00Z',
