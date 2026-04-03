@@ -33,7 +33,7 @@ Interpretation:
 
 ## 3.1 Frontend (HTML/CSS/JavaScript)
 Responsibilities:
-- Render views: Home, Products, Product detail, Stores, Employees, and Stores Map placeholder.
+- Render views: Home, Products, Product detail, Stores, Employees, and Stores Map.
 - Render entity tables and Store detail grouped inventory view.
 - Render Product detail inventory grouped by Store with Shelf sub-rows.
 - Execute CRUD actions through fetch-based REST calls to backend endpoints.
@@ -41,6 +41,9 @@ Responsibilities:
 - Render Store detail weather and social context blocks (temperature, relativeHumidity, tweets).
 - Render Store detail photo container with CSS-only rotate+zoom hover animation.
 - Render Store detail immersive tour with lazy-loaded Three.js, OrbitControls, and Raycaster hover inspection.
+- Render Stores Map with Leaflet (CDN), OpenStreetMap tiles, and custom Store image markers.
+- Handle Stores Map hover card behavior using pre-existing DOM nodes and CSS class toggling.
+- Handle Stores Map marker click-through navigation to Stores view with selected Store detail loading.
 - Render Product detail using DOM template-row cloning (Store group row + Shelf row templates).
 - Execute Store detail actions (add Shelf, add InventoryItem, buy product).
 - Execute Product detail action to add InventoryItem to an eligible Shelf in the selected Store group.
@@ -237,10 +240,7 @@ Primary channel:
 
 Current status:
 - Backend Socket.IO emission is implemented.
-- Frontend Socket.IO client consumption is pending.
-
-Update:
-- Frontend Socket.IO client consumption is now implemented.
+- Frontend Socket.IO client consumption is implemented.
 - Real-time notification delivery is active from Orion to backend to connected browsers.
 
 ## Orion -> Backend -> Frontend Real-Time Flow
@@ -336,8 +336,8 @@ The diagram highlights the current implemented production flow.
 - Employees view:
   - Employee table CRUD with category and skills.
 - Stores Map view:
-  - Navigation target and placeholder section are implemented.
-  - Full map rendering remains pending for the dedicated map issue.
+  - Leaflet map rendered from Store geolocation data.
+  - Custom Store image markers, hover info card, and click-through to Stores detail are implemented.
 
 ## 6.1 Global UX System (Issue 4)
 

@@ -87,8 +87,7 @@ Implemented state after Issue 5:
 
 ### FR-4. Store Detail View
 The Store detail page shall include all items below:
-1. Store location rendered on a map using Leaflet. Implemented in Issue 8.
-2. Immersive virtual tour of the Store using Three.js, showing Shelves and contained Products, including:
+1. Immersive virtual tour of the Store using Three.js, showing Shelves and contained Products, including:
    - Units per shelf
    - Total stock units
 3. InventoryItems table grouped by Shelf:
@@ -126,7 +125,7 @@ Implemented state after Issue 6:
 - Store detail includes a tweets section rendered from Store `tweets` data with an X/Twitter icon per item.
 - Store notifications are displayed inside a dedicated panel container with Manchester United red left-border styling.
 - Three.js immersive store tour is now implemented in Issue 7 with lazy-loaded CDN modules, interactive hover inspection, and canvas-scoped cleanup.
-- Leaflet map remains pending for Issue 8.
+- Store geolocation data is consumed by the Stores Map tab (Issue 8) for Leaflet marker rendering and map-to-detail navigation.
 
 ## 4.3 Home and Global Navigation
 
@@ -146,10 +145,11 @@ The Stores Map view shall:
 - Show a hover card with image and key Store attributes.
 - Navigate to Store detail when a Store marker/image is clicked.
 
-Current implemented state after Issue 4:
-- Navigation includes a Stores Map tab.
-- The Stores Map view is currently an empty placeholder section.
-- Full Leaflet implementation remains pending for its dedicated issue.
+Current implemented state after Issue 8:
+- Navigation includes an active Stores Map tab.
+- The view renders a Leaflet map using OpenStreetMap tiles and Store image markers.
+- Hovering a marker shows a pre-rendered info card (image, name, country, temperature, humidity).
+- Clicking a marker navigates to Stores view and loads the selected Store detail context.
 
 ## 4.4 NGSIv2 Registrations, Subscriptions, and Notifications
 
@@ -343,7 +343,7 @@ Backend (Issues 1C, 2A, 2B):
 - SubscriptionService implemented and executed at startup to register Orion subscriptions (price change and low stock).
 - Notification callback endpoint implemented at `/api/notifications`.
 - Notifications are received and logged successfully.
-- Socket.IO frontend propagation remains pending for a future iteration.
+- Socket.IO frontend propagation is implemented and active in the browser UI.
 
 Frontend (Issues 2C, 2D + Store detail completion):
 - Base frontend implemented as vanilla HTML/CSS/JavaScript (no frameworks).
@@ -398,10 +398,9 @@ Frontend (Issue 4 - Global UX theme system):
    - Products
    - Stores
    - Employees
-   - Stores Map (placeholder)
+   - Stores Map
 - Known exception: form tags were intentionally kept to preserve native HTML5 validation behavior and existing input constraints.
 
 ### 8.2 Pending Features
 
-- Store map view (Leaflet) and store-detail map section.
-- Advanced UI features requested by assignment that are not yet completed beyond the implemented Store detail tour and Issue 4 baseline.
+- Advanced UI features requested by assignment that are not yet completed beyond the implemented Store detail tour, Stores Map tab, and Issue 4 baseline.
