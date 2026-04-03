@@ -261,6 +261,26 @@ Implementation details:
 - Event name used for notification forwarding is `orion_notification`.
 - Frontend Socket.IO client uses compatible `4.7.x` version.
 
+## 4.3 Real-Time Price Propagation (Issue 9)
+
+### Price Change Event Handler (Frontend)
+Frontend Socket.IO now includes a dedicated `price_change` event handler for immediate product price updates without page reload.
+
+Flow:
+1. Backend or external system triggers price update on `Product.price` in Orion.
+2. Backend emits Socket.IO `price_change` event with payload: `{ product_id: "...", new_price: <number> }`
+3. Frontend handler uses `querySelectorAll('[data-product-id="..."][data-field="price"]')` to locate all price display elements across:
+   - Products table price cells
+   - Store detail inventory section prices
+   - Product detail view prices
+4. Each element's textContent is updated and a CSS animation class `price-flash` is toggled to provide visual feedback (yellow flash animation, 0.8s).
+
+Implementation:
+- All price elements are tagged with `data-product-id` and `data-field="price"` attributes in HTML and DOM.
+- Frontend JavaScript maintains a data-attribute-based query selector strategy (no hardcoded element IDs or class lists).
+- CSS animation `@keyframes price-flash` handles the visual effect: yellow background fading to transparent.
+- Handler removes and re-adds the animation class to trigger reflow and ensure animation plays on each update.
+
 ## 5. Data Flows
 
 ## 5.1 Entity Update Flow (User-Initiated)
