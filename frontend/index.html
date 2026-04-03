@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -422,11 +423,20 @@ classDiagram
 
     <section id="stores-map-view" class="view hidden view-stores-map">
       <h2 data-i18n="storesMap.title">Stores Map</h2>
-      <p data-i18n="storesMap.placeholder">Stores Map will be implemented in Issue 8.</p>
+      <p data-i18n="storesMap.hint">Hover a marker to preview store conditions, click to open store detail.</p>
+      <div id="leaflet-map" aria-label="Stores map" data-i18n-aria-label="storesMap.aria.map"></div>
+      <div id="map-hover-card" class="map-card hidden" aria-live="polite">
+        <img id="map-card-img" src="" alt="" data-i18n-aria-label="storesMap.card.imageAlt" aria-label="Store photo">
+        <h3 id="map-card-name"></h3>
+        <p id="map-card-country"></p>
+        <p id="map-card-temp"></p>
+        <p id="map-card-humidity"></p>
+      </div>
     </section>
   </main>
 
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="app.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
   <script>

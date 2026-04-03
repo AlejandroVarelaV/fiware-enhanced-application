@@ -173,6 +173,79 @@ main {
 
 .view-stores-map {
   border-top-color: #1a3a2a;
+  position: relative;
+}
+
+#leaflet-map {
+  width: 100%;
+  height: 600px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.map-card {
+  position: absolute;
+  top: 94px;
+  left: 28px;
+  z-index: 1000;
+  min-width: 200px;
+  max-width: 320px;
+  background: #ffffff;
+  border-left: 4px solid #DA020E;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
+  border-radius: 10px;
+  padding: 10px;
+  transition: opacity 0.2s ease;
+  opacity: 1;
+}
+
+.map-card.hidden {
+  display: block;
+  opacity: 0;
+  pointer-events: none;
+}
+
+#map-card-img {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+#map-card-name {
+  margin: 0 0 6px;
+}
+
+#map-card-country,
+#map-card-temp,
+#map-card-humidity {
+  margin: 3px 0;
+}
+
+.store-map-marker {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 3px solid #DA020E;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.store-map-marker-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+html[data-theme="dark"] .map-card {
+  background: #1f1f1f;
+  color: #f1f1f1;
+  border-color: var(--color-border);
+  border-left: 4px solid #DA020E;
 }
 
 h2,
@@ -529,5 +602,12 @@ html[data-theme="dark"] #store-notifications-panel {
 
   .store-detail-top-grid {
     grid-template-columns: 1fr;
+  }
+
+  .map-card {
+    left: 16px;
+    right: 16px;
+    top: 86px;
+    max-width: none;
   }
 }
