@@ -1,448 +1,126 @@
-# System Architecture
-
-## 1. Architectural Overview
-
-The system follows a container-based architecture centered on FIWARE Orion Context Broker (NGSIv2), with Flask as backend and a browser frontend built with HTML/CSS/JavaScript.
-
-At a high level:
-- Frontend handles rendering and user interaction using vanilla JavaScript and direct DOM updates.
-- Backend orchestrates NGSIv2 operations, startup subscriptions, validation, and notification fan-out.
-- Orion is the source of truth for context entities and triggers notifications.
-- External context providers supply selected Store attributes (temperature, relativeHumidity, tweets) through Orion.
-- Docker Compose provisions and connects all runtime services.
-
-## 2. High-Level Architecture Diagram (Textual + Mermaid)
-
-```mermaid
-flowchart LR
-    U[Browser UI HTML/CSS/JS\nVanilla JS + DOM rendering] <-->|HTTP/REST| B[Flask Backend\nFlask-SocketIO]
-    B <-->|NGSIv2 REST| O[Orion Context Broker]
-    O <-->|Context Queries| E[External Context Providers\nTutorial Container]
-    O -->|Subscription Notification\nHTTP callback host.docker.internal| B
-    B -->|WebSocket events\nSocket.IO| U
-    O <-->|Persistence| M[(MongoDB)]
-```
-
-Interpretation:
-- CRUD and query traffic from UI goes through Flask to Orion.
-- Orion resolves external attributes from context providers.
-- Orion subscription notifications are delivered to Flask callback endpoints.
-- Flask emits WebSocket events so active UI sessions update in real time.
-
-## 3. Components and Responsibilities
-
-## 3.1 Frontend (HTML/CSS/JavaScript)
-Responsibilities:
-- Render views: Home, Products, Product detail, Stores, Employees, and Stores Map.
-- Render entity tables and Store detail grouped inventory view.
-- Render Product detail inventory grouped by Store with Shelf sub-rows.
-- Execute CRUD actions through fetch-based REST calls to backend endpoints.
-- Render Store detail using DOM logic with hierarchy Store -> Shelves -> InventoryItems.
-- Render Store detail weather and social context blocks (temperature, relativeHumidity, tweets).
-- Render Store detail photo container with CSS-only rotate+zoom hover animation.
-- Render Store detail immersive tour with lazy-loaded Three.js, OrbitControls, and Raycaster hover inspection.
-- Render Stores Map with Leaflet (CDN), OpenStreetMap tiles, and custom Store image markers.
-- Handle Stores Map hover card behavior using pre-existing DOM nodes and CSS class toggling.
-- Handle Stores Map marker click-through navigation to Stores view with selected Store detail loading.
-- Render Product detail using DOM template-row cloning (Store group row + Shelf row templates).
-- Execute Store detail actions (add Shelf, add InventoryItem, buy product).
-- Execute Product detail action to add InventoryItem to an eligible Shelf in the selected Store group.
-- Apply global UX state and localization behavior:
-  - Manchester United design tokens through CSS custom properties.
-  - Dark/Light mode toggling by updating `html[data-theme]`.
-  - EN/ES translation application using `data-i18n` attributes and a JavaScript translations object.
-  - Persist user theme and language preferences in `localStorage`.
-
-Issue 4 implementation note:
-- Form tags were intentionally kept as a known exception to preserve native HTML5 validation behavior.
-
-Key design constraints:
-- No frontend framework.
-- Prefer simple DOM updates and small rendering helpers.
-
-## 3.2 Backend (Flask + Flask-SocketIO)
-Responsibilities:
-- Expose HTTP endpoints for frontend operations.
-- Translate frontend actions into NGSIv2 requests to Orion.
-- Perform startup routines:
-  - Register external context providers for Store temperature, relativeHumidity, tweets.
-  - Register subscriptions for product price changes and low stock.
-- Expose notification callback endpoints for Orion.
-- Emit real-time events to browser clients through Flask-SocketIO.
-- Enforce server-side validation and consistent error handling.
-
-### Backend Architecture (Issue 1A + Issue 1B + Issue 1C Implementation)
-The backend is structured in logical layers:
-
-**app/__init__.py** (Flask Application Factory):
-- `create_app(config_name)` function initializes Flask with configuration
-- Global error handlers for application exceptions
-- CORS configuration for frontend-backend communication
-- OrionService instantiation and app context binding
-- Blueprint registration for routes
-
-**config/config.py** (Configuration System):
-- Environment-driven configuration (no hardcoded values)
-- Multi-environment support: Config (base), DevelopmentConfig, ProductionConfig, TestingConfig
-- Settings: FLASK_PORT, LOG_LEVEL, CORS_ORIGINS, ORION_URL, ORION_FIWARE_SERVICE, ORION_FIWARE_SERVICEPATH, HEALTH_CHECK_TIMEOUT
-
-**app/services/orion_service.py** (Orion NGSIv2 Client):
-- Low-level HTTP client for Orion communication
-- Standardized NGSIv2 headers injected into all requests
-- CRUD operations: create_entity, get_entity, list_entities, update_entity_attrs, delete_entity
-- Specialized operations: check_connection(), patch_entity_increment()
-- Robust error handling with custom exceptions for HTTP errors
-- Request/response logging for debugging
-
-**app/services/product_service.py** (Product Service Layer):
-- Handles Product required-field validation (presence only)
-- Applies Product ID strategy (payload id, otherwise UUID fallback)
-- Maps Product payloads to/from NGSIv2 format
-- Delegates Orion communication to OrionService
-
-**app/services/store_service.py** (Store Service Layer):
-- Handles Store required-field validation (presence only)
-- Applies Store ID strategy (payload id, otherwise UUID fallback)
-- Maps Store payloads to/from NGSIv2 format
-- Delegates Orion communication to OrionService
-
-**app/services/employee_service.py** (Employee Service Layer):
-- Handles Employee CRUD operations
-- Validates required fields, basic types, and simple formats (email, dateOfContract)
-- Validates skills enum values
-- Validates refStore existence in Orion
-- Applies ID strategy (payload id, otherwise UUID fallback)
-
-**app/services/shelf_service.py** (Shelf Service Layer):
-- Handles Shelf CRUD operations
-- Validates required fields and basic types
-- Validates numeric constraint (maxCapacity > 0)
-- Validates optional location shape (geo point object)
-- Validates refStore existence in Orion
-- Applies ID strategy (payload id, otherwise UUID fallback)
-
-**app/services/inventory_item_service.py** (InventoryItem Service Layer):
-- Handles InventoryItem CRUD operations
-- Validates required fields and basic types
-- Validates numeric constraints (shelfCount >= 0, stockCount >= 0)
-- Validates refStore, refShelf, and refProduct existence in Orion
-- Applies ID strategy (payload id, otherwise UUID fallback)
-
-**app/services/subscription_service.py** (Subscription Service):
-- Builds Orion subscription payloads for Product price changes and InventoryItem low stock.
-- Registers subscriptions at startup while avoiding duplicate creation.
-
-**app/services/context_provider_service.py** (Context Provider Registration Service):
-- Builds Orion registration payloads for external Store attributes.
-- Registers providers for `temperature`, `relativeHumidity`, and `tweets` at startup.
-- Uses isolated try/except handling per registration so startup never crashes on individual failures.
-
-**app/services/notification_event_service.py** (Notification Event Service):
-- Parses Orion notification payloads.
-- Emits Socket.IO events for supported event types.
-
-**app/routes/** (HTTP Endpoints):
-- health_routes.py: Health check endpoint (GET /api/health) for monitoring
-- product_routes.py: Product CRUD endpoints (/api/products, /api/products/<id>)
-- store_routes.py: Store CRUD endpoints (/api/stores, /api/stores/<id>)
-- employee_routes.py: Employee CRUD endpoints (/api/employees, /api/employees/<id>)
-- shelf_routes.py: Shelf CRUD endpoints (/api/shelves, /api/shelves/<id>)
-- inventory_item_routes.py: InventoryItem CRUD endpoints (/api/inventory-items, /api/inventory-items/<id>)
-  - Includes atomic buy endpoint: PATCH /api/inventory-items/<id>/buy
-- notification_routes.py: Orion callback endpoint (/api/notifications)
-- registration_routes.py: Orion registrations proxy endpoint (GET /api/registrations)
-- Blueprint-based modular design for future endpoint expansion
-
-Issue 1B/1C request processing flow:
-- Route -> Service -> OrionService
-- Routes handle request parsing and response formatting
-- Services handle validation, ID handling, mapping, and orchestration
-- OrionService remains low-level only (HTTP/NGSIv2 transport and broker error handling)
-
-Validation scope in implemented backend services:
-- Required fields
-- Basic type checks
-- Simple format checks (email, datetime)
-- Numeric constraints for capacity/count fields
-- Relationship checks limited to referenced entity existence in Orion
-- No deep cross-entity consistency rules in Issue 1C
-
-**app/models/exceptions.py** (Error Hierarchy):
-- ApplicationError (base exception)
-- OrionConnectionError: Network or service unavailability
-- OrionEntityNotFoundError: HTTP 404 from Orion
-- OrionAPIError: HTTP 400 or 500 errors with context
-- ValidationError: Input validation failures
-
-**app/utils/logger.py** (Logging):
-- setup_logging(app): Configure Flask logging pipeline
-- get_logger(name): Return configured logger instance
-- Structured logging with configurable severity levels
-
-**run.py** (Entry Point):
-- Application initialization and development server launch
-- Environment variable loading from .env file
-- Port/debug mode configuration from environment
-
-## 3.3 Orion Context Broker (NGSIv2)
-Responsibilities:
-- Manage entities and attributes for Store, Employee, Product, Shelf, InventoryItem.
-- Persist context data in MongoDB.
-- Evaluate subscription conditions and deliver notifications.
-- Resolve externally provided attributes via registered context providers.
-
-## 3.4 External Context Providers
-Responsibilities:
-- Provide Store temperature and relativeHumidity values.
-- Provide Store tweets.
-- Serve data to Orion based on registration metadata.
-
-Deployment note:
-- Providers run in the tutorial container environment referenced by Docker Compose.
-
-## 3.5 Docker Runtime Environment
-The runtime uses Docker Compose service topology:
-- Orion Context Broker container.
-- Tutorial context-provider container.
-- MongoDB container.
-- Host-local Flask application process (or containerized Flask in later evolution).
-
-Important callback rule:
-- Orion runs in a container; localhost inside Orion points to its own container.
-- Subscription callback URL must use host.docker.internal to reach the host machine backend.
-
-Linux Docker networking note:
-- In this project, `host.docker.internal` was not reliable on Linux for Orion callbacks.
-- The working host callback address is the Docker bridge gateway `172.17.0.1`, so Orion posts notifications to `http://172.17.0.1:5000/api/notifications`.
-
-## 4. Communication Architecture
-
-## 4.1 REST/HTTP Communication (NGSIv2)
-Primary channel:
-- Backend to Orion: NGSIv2 REST operations for CRUD, queries, patch updates, registrations, subscriptions.
-
-Examples:
-- Entity CRUD for Product, Store, Employee, Shelf, InventoryItem.
-- Buy-one-unit inventory patch:
-  PATCH /v2/entities/<inventoryitem_id>/attrs with increment semantics.
-
-Implemented backend endpoint matrix:
-- /api/products and /api/products/<id>
-- /api/stores and /api/stores/<id>
-- /api/employees and /api/employees/<id>
-- /api/shelves and /api/shelves/<id>
-- /api/inventory-items and /api/inventory-items/<id>
-- /api/inventory-items/<id>/buy
-
-## 4.2 WebSocket Communication (Socket.IO)
-Primary channel:
-- Backend to Frontend: real-time notifications for relevant business events.
-
-Current status:
-- Backend Socket.IO emission is implemented.
-- Frontend Socket.IO client consumption is implemented.
-- Real-time notification delivery is active from Orion to backend to connected browsers.
-
-## Orion -> Backend -> Frontend Real-Time Flow
-
-Full real-time pipeline:
-1. Orion detects subscribed entity changes (`Product.price` or low `InventoryItem.stockCount`).
-2. Orion sends HTTP POST callback to backend `/api/notifications`.
-3. Backend receives and processes the payload.
-4. Backend emits Socket.IO event `orion_notification`.
-5. Frontend receives the event and updates the notifications UI.
-
-Text diagram:
-
-Orion -> Flask API -> Socket.IO -> Browser UI
-
-Implementation details:
-- Backend real-time channel is implemented with Flask-SocketIO.
-- Event name used for notification forwarding is `orion_notification`.
-- Frontend Socket.IO client uses compatible `4.7.x` version.
-
-## 4.3 Real-Time Price Propagation (Issue 9)
-
-### Price Change Event Handler (Frontend)
-Frontend Socket.IO now includes a dedicated `price_change` event handler for immediate product price updates without page reload.
-
-Flow:
-1. Backend or external system triggers price update on `Product.price` in Orion.
-2. Backend emits Socket.IO `price_change` event with payload: `{ product_id: "...", new_price: <number> }`
-3. Frontend handler uses `querySelectorAll('[data-product-id="..."][data-field="price"]')` to locate all price display elements across:
-   - Products table price cells
-   - Store detail inventory section prices
-   - Product detail view prices
-4. Each element's textContent is updated and a CSS animation class `price-flash` is toggled to provide visual feedback (yellow flash animation, 0.8s).
-
-Implementation:
-- All price elements are tagged with `data-product-id` and `data-field="price"` attributes in HTML and DOM.
-- Frontend JavaScript maintains a data-attribute-based query selector strategy (no hardcoded element IDs or class lists).
-- CSS animation `@keyframes price-flash` handles the visual effect: yellow background fading to transparent.
-- Handler removes and re-adds the animation class to trigger reflow and ensure animation plays on each update.
-
-## 5. Data Flows
-
-## 5.1 Entity Update Flow (User-Initiated)
-1. User performs CRUD action in frontend.
-2. Frontend sends request to Flask backend.
-3. Backend validates and maps request to Orion NGSIv2 call.
-4. Orion updates entity state in MongoDB-backed context.
-5. Backend returns operation result to frontend.
-6. Frontend refreshes or patches the impacted UI region.
-
-## 5.2 External Context Resolution Flow
-1. Backend registers external providers at startup.
-2. Orion stores registration metadata.
-3. When requested, Orion obtains temperature/relativeHumidity/tweets from provider endpoints.
-4. Backend/frontend consume enriched Store context.
-
-## 5.3 Subscription Notification Flow
-1. Backend registers subscriptions in Orion.
-2. Condition occurs in Orion (price change or low stock).
-3. Orion POSTs notification payload to the Flask callback endpoint at `http://172.17.0.1:5000/api/notifications`.
-4. Flask receives the notification, logs it, and forwards it to the notification event service when applicable.
-5. Backend emits `orion_notification` through Flask-SocketIO.
-6. Connected browsers receive the event in real time and update the notification panel.
-
-### 5.4 Subscription Flow Diagram
-```mermaid
-sequenceDiagram
-  participant O as Orion Context Broker
-  participant B as Flask Backend
-  participant L as Backend Logs
-  participant F as Frontend Socket.IO Client
-
-  O->>B: POST /api/notifications
-  B->>L: Log received Orion notification
-  B-->>F: Emit Socket.IO event orion_notification
-```
-
-The diagram highlights the current implemented production flow.
-
-## 5.4 Store Purchase Flow (Buy One Unit)
-1. User clicks Buy product in a Store detail InventoryItem row.
-2. Frontend calls `PATCH /api/inventory-items/<id>/buy` (no client-side decrement payload).
-3. Backend forwards the exact atomic Orion payload to `PATCH /v2/entities/<id>/attrs` via `OrionService.update_entity_attrs`.
-4. Orion applies `$inc: -1` to both `shelfCount` and `stockCount` in one PATCH operation.
-5. Frontend reloads Store detail data using the existing fetch/render cycle.
-
-## 6. View-to-Component Mapping
-
-- Home:
-  - Dashboard entry view with Mermaid-based entity model diagram.
-  - Includes "Entity Model" heading and short application description under the diagram.
-- Products view:
-  - Product table CRUD, including color/size/price columns.
-  - Product name/image navigation to dedicated Product detail view.
-- Product detail view:
-  - Product header (image, color swatch, size, price).
-  - Inventory grouped by Store with nested Shelf rows.
-  - Per-Store "Add to shelf" panel with dynamic shelf eligibility filtering.
-  - Back link to return to Products view.
-- Stores view:
-  - Store table CRUD and Store detail section for inventory grouping.
-- Store detail (inside Stores view):
-  - Inventory grouped by Shelf.
-  - Products rendered per Shelf with image, name, price, size, color.
-  - shelfCount and stockCount shown per InventoryItem.
-  - Shelf capacity progress bar.
-  - Weather panel with icon/color-coded temperature and humidity values.
-  - Tweets panel rendered using list-template cloning.
-  - Lazy-loaded Three.js tour container with interactive shelf/product hover overlay.
-  - Store photo panel with CSS rotate+zoom hover animation.
-  - Notifications panel container with red accent border.
-  - Add Shelf, Add InventoryItem, and Buy product actions.
-- Employees view:
-  - Employee table CRUD with category and skills.
-- Stores Map view:
-  - Leaflet map rendered from Store geolocation data.
-  - Custom Store image markers, hover info card, and click-through to Stores detail are implemented.
-
-## 6.1 Global UX System (Issue 4)
-
-- Sticky navbar:
-  - Implemented as top-level sticky header with active-link highlighting.
-  - Includes 5 navigation links: Home, Products, Stores, Employees, Stores Map.
-- Theme architecture:
-  - Base theme tokens declared in `:root`.
-  - Dark mode overrides declared under `html[data-theme="dark"]`.
-  - Theme toggle updates only state attributes/classes, with no HTML injection.
-- Internationalization architecture:
-  - Text resources are centralized in a frontend `translations` object with `en` and `es` namespaces.
-  - `applyTranslations(lang)` iterates through translatable nodes (`data-i18n`) and updates text values.
-  - Language selection persists across sessions using `localStorage`.
-
-## 7. Architectural Constraints and Quality Decisions
-
-- Strict source of truth: assignment requirements govern scope.
-- Real-time updates use event propagation pattern (Orion -> Flask -> Socket.IO clients).
-- UI consistency uses shared rendering patterns for grouped tables and action links.
-- Visual behavior is primarily CSS-driven, reserving JS for state and data flow.
-- Dockerized infrastructure isolates broker/provider/persistence concerns.
-
-## 8. Operational Considerations
-
-Startup sequence requirements:
-1. Start infrastructure services (MongoDB, Orion, tutorial provider).
-2. Start Flask backend.
-3. Execute backend startup tasks:
-  - Register subscriptions.
-  - Register external context providers (temperature, relativeHumidity, tweets).
-4. Open frontend UI.
-
-## 9. Project Structure and Deployment Baseline (Issue #16)
-
-The real implemented repository/deployment baseline includes:
-
-- Root governance and onboarding docs: `AGENTS.md` and root `README.md`.
-- Docker Compose application services:
-  - `backend`: Flask + Flask-SocketIO containerized runtime exposed at `localhost:5000`.
-  - `frontend`: static nginx service exposed at `localhost:3000`.
-- Existing FIWARE infra services remain active:
-  - `orion-v2`
-  - `mongo-db`
-  - `tutorial`
-
-Port allocation in current baseline:
-
-- Frontend app: 3000
-- Backend API: 5000
-- Orion: 1026
-- Tutorial app: 3002
-- Tutorial dummy devices: 3001
-
-This issue modifies structure and deployment wiring only; it does not change domain/business logic.
-
-Failure handling expectations:
-- Retry-safe registration/subscription bootstrapping.
-- Graceful UI degradation if external provider data is temporarily unavailable.
-- Notification endpoint observability via backend logs for troubleshooting.
-- Orion startup failures do not crash the Flask app; the backend continues running even if subscription registration cannot complete.
-
-## 9. Documentation and Workflow Alignment
-
-For every completed implementation issue under GitHub Flow:
-- Update PRD.md, architecture.md, and data_model.md.
-- Keep architecture diagrams and flow descriptions synchronized with actual behavior.
-- Ensure README and deployment instructions remain aligned with container topology and callback URL rules.
-
-## 10. GitHub Flow Development Workflow
-
-This project adopts GitHub Flow as the mandatory development workflow.
-
-1. Issue creation:
-  - Define an implementation issue in the remote GitHub repository from an agreed plan.
-  - The issue includes scope, acceptance criteria, and affected artifacts.
-2. Branching:
-  - Create a dedicated branch from `main` for the issue implementation.
-  - Branch naming should map clearly to the issue scope.
-3. Commit and push:
-  - Implement changes in small, traceable commits in the issue branch.
-  - Push the branch to origin to back up progress and enable review.
-4. Merge or pull request:
-  - If repository permissions allow, merge the issue branch into `main` to close the issue.
-  - If direct merge is not allowed, open a pull request and have the repository owner review and merge it.
-5. Post-issue documentation update:
-  - After merge, update `PRD.md`, `architecture.md`, and `data_model.md` to reflect the implemented behavior.
-  - Optional governance rules can be codified in `AGENTS.md`.
+# System Architecture (Final)
+
+## 1. Final Component Architecture
+
+United Supermarket is implemented as a FIWARE-centered architecture with these runtime components:
+
+1. Orion Context Broker (NGSIv2) - central context data broker.
+2. Tutorial context provider container - external data source for Store attributes.
+3. Flask backend - API orchestration, validation, Orion proxy/service logic, startup registration/subscription, notification callback handling.
+4. Static frontend (HTML/CSS/JS served by nginx) - user UI and interaction logic.
+5. Socket.IO channel - backend to browser real-time notification delivery.
+
+### Component Diagram (Description)
+- Frontend calls Flask backend via REST endpoints under `/api/*`.
+- Flask backend calls Orion NGSIv2 endpoints for entity operations.
+- Orion resolves external Store attributes through registered provider at `http://tutorial:3000/api/v2`.
+- Orion sends subscription callbacks to backend notification endpoint.
+- Backend forwards callback payloads to connected clients through Socket.IO event `orion_notification`.
+
+## 2. Runtime Services (docker-compose)
+
+- `orion-v2` (port 1026)
+- `mongo-db` (port 27017)
+- `tutorial` (ports 3002 and 3001; provider endpoint at `http://tutorial:3000/api/v2`)
+- `backend` (port 5000)
+- `frontend` (port 3000 mapped to nginx 80)
+
+## 3. Complete Backend API Endpoint Table
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| POST | /api/products | Create Product |
+| GET | /api/products | List Products |
+| GET | /api/products/{product_id} | Get Product by id |
+| PATCH | /api/products/{product_id} | Update Product |
+| DELETE | /api/products/{product_id} | Delete Product |
+| POST | /api/stores | Create Store |
+| GET | /api/stores | List Stores |
+| GET | /api/stores/{store_id} | Get Store by id |
+| PATCH | /api/stores/{store_id} | Update Store |
+| DELETE | /api/stores/{store_id} | Delete Store |
+| POST | /api/employees | Create Employee |
+| GET | /api/employees | List Employees |
+| GET | /api/employees/{employee_id} | Get Employee by id |
+| PATCH | /api/employees/{employee_id} | Update Employee |
+| DELETE | /api/employees/{employee_id} | Delete Employee |
+| POST | /api/shelves | Create Shelf |
+| GET | /api/shelves | List Shelves |
+| GET | /api/shelves/{shelf_id} | Get Shelf by id |
+| PATCH | /api/shelves/{shelf_id} | Update Shelf |
+| DELETE | /api/shelves/{shelf_id} | Delete Shelf |
+| POST | /api/inventory-items | Create InventoryItem |
+| GET | /api/inventory-items | List InventoryItems |
+| GET | /api/inventory-items/{inventory_item_id} | Get InventoryItem by id |
+| PATCH | /api/inventory-items/{inventory_item_id} | Update InventoryItem |
+| DELETE | /api/inventory-items/{inventory_item_id} | Delete InventoryItem |
+| PATCH | /api/inventory-items/{inventory_item_id}/buy | Atomic decrement of shelfCount and stockCount |
+| POST | /api/notifications | Orion subscription callback receiver |
+| GET | /api/registrations | Proxy Orion registrations list |
+| GET | /api/health | Backend and Orion connectivity health check |
+
+## 4. Context Provider Registrations
+
+Registered at startup from backend service layer:
+
+1. `store-environment-context-provider`
+- Entity type: `Store`
+- `idPattern`: `.*`
+- Attributes: `temperature`, `relativeHumidity`
+- Provider URL: `http://tutorial:3000/api/v2`
+- `legacyForwarding: true`
+
+2. `store-tweets-context-provider`
+- Entity type: `Store`
+- `idPattern`: `.*`
+- Attributes: `tweets`
+- Provider URL: `http://tutorial:3000/api/v2`
+- `legacyForwarding: true`
+
+Startup behavior:
+- Registration attempts are isolated; errors are logged and startup continues.
+
+## 5. Subscription Types
+
+Registered at backend startup, deduplicated by description:
+
+1. `product-price-change-subscription`
+- Subject entity type: `Product`
+- Condition attrs: `price`
+- Notification attrs: `id`, `type`, `name`, `price`
+- Notification URL: from `ORION_NOTIFICATION_URL`
+
+2. `inventory-low-stock-subscription`
+- Subject entity type: `InventoryItem`
+- Condition attrs: `stockCount`
+- Condition expression: `stockCount < LOW_STOCK_THRESHOLD` (default 5)
+- Notification attrs: `id`, `type`, `stockCount`, `refProduct`, `refShelf`, `refStore`
+- Notification URL: from `ORION_NOTIFICATION_URL`
+
+## 6. Notification and Real-Time Flow
+
+1. Orion detects subscription condition and POSTs to `/api/notifications`.
+2. Flask backend receives payload.
+3. Backend `NotificationEventService` emits Socket.IO event `orion_notification`.
+4. Frontend Socket.IO client receives event and updates notification UI.
+
+Note:
+- Frontend also contains `price_change` listener logic, but backend currently emits `orion_notification` only.
+
+## 7. Key Configuration Inputs
+
+Backend runtime variables used in code:
+- `FLASK_CONFIG`
+- `FLASK_PORT`
+- `LOG_LEVEL`
+- `CORS_ORIGINS`
+- `ORION_URL`
+- `ORION_FIWARE_SERVICE`
+- `ORION_FIWARE_SERVICEPATH`
+- `ORION_NOTIFICATION_URL`
+- `LOW_STOCK_THRESHOLD`
+- `HEALTH_CHECK_TIMEOUT`
+
+## 8. Architectural Conclusion
+
+The final architecture is fully aligned with the implemented repository: Orion-centered context management, startup registrations/subscriptions, callback ingestion, and Socket.IO real-time propagation to the static frontend.

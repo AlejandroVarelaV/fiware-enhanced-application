@@ -5,7 +5,7 @@ charset-normalizer==3.4.6
 click==8.3.1
 Flask==2.3.3
 Flask-Cors==4.0.0
-Flask-SocketIO==5.6.1
+Flask-SocketIO==5.3.6
 h11==0.16.0
 idna==3.11
 itsdangerous==2.2.0
