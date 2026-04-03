@@ -229,6 +229,34 @@ Recommended NGSIv2 attribute typing:
 - Geospatial coordinates: type geo:json
 - Entity references: Relationship-style URI fields (for NGSIv2 often represented as Text URI fields with ref naming convention)
 
+## 6.5 Issue 9 Frontend Form Input Enhancements
+
+The frontend form implementation now enforces HTML5 form input types and validation attributes for improved user experience and data quality:
+
+### Product Form Updates
+- **color**: Changed from `type="text"` to `type="color"`, providing native color picker UI. Sends RGB hex value to backend.
+
+### Store Form Updates
+- **capacity**: Changed from `type="number" min="1"` to `type="number" min="0"`, allowing inclusion of empty stores while enforcing non-negative capacity values.
+
+### Employee Form Updates
+- **dateOfContract**: Changed from `type="text" placeholder="ISO 8601 format"` to `type="date"`, leveraging browser date picker and ISO 8601 serialization. No longer accepts free-form text.
+- **category**: Changed from `type="text"` to `<select>` with predefined options: Manager, Cashier, Warehouse. Backend validation validates these enum values. Renders category icons in tables based on selected value.
+- **skills**: Changed from `type="text" (comma-separated)` to `<select multiple>` with three predefined options: MachineryDriving, WritingReports, CustomerRelationships. Frontend form handling uses `selectedOptions` querySelectorAll for multi-value extraction. Backend validation ensures only valid enum values are persisted.
+- **email**: Uses `type="email"`, enabling browser email format validation.
+- **password**: Uses `type="password"`, masking input text.
+- **username**: No change; standard `type="text"` used.
+
+### Form Submission Behavior
+- Multi-select `<select>` elements for `skills` are handled by frontend JavaScript using `selectedOptions` collection.
+- On form submission, selected skill values are extracted and submitted as an array to the backend.
+- In edit flows, existing skill selections are restored by iterating through options and setting `selected=true` based on the loaded employee data.
+- All validation attributes (`required`, `min`, `max`, `step`, `type`) are browser-native and provide real-time validation UI feedback.
+
+### Backend Impact
+- Backend validation endpoints (`POST /api/employees`, `PATCH /api/employees/<id>`) continue to accept the same JSON payload format (skills as array of strings).
+- Backend enum validation remains active for skills to reject invalid values that might bypass HTML5 validation.
+
 ## 7. Mermaid UML Entity Diagram
 
 The Mermaid UML diagram defined below is rendered in the Home view of the application.

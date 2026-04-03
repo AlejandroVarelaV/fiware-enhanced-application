@@ -255,6 +255,64 @@ Delivery behavior:
 - Orion sends callback payloads to the backend notification endpoint.
 - The backend forwards payloads to connected frontend users in real time through Flask-SocketIO.
 
+## Visual Polish and Enhanced UX (Issue 9 - Completed)
+
+### Implementation Summary
+The application now includes comprehensive visual enhancements across all views and forms.
+
+#### VE-1. Employee Photo Zoom (CSS)
+- Employee images in the Employees table are wrapped in a zoom-enabled container.
+- On hover, images scale to 1.25x with a smooth 0.4s CSS transition.
+- No JavaScript required; effect is CSS-only using transform.
+
+#### VE-2. Progress Bar Color States (CSS + JS)
+- Shelf capacity progress bars and other fill indicators display contextual colors.
+- Color mapping: green (#28a745) for low fill (<50%), amber (#ffc107) for medium (50-80%), red (#DA020E) for high (>80%).
+- JS function `updateProgressBar(bar, pct)` computes the fill level and sets a `data-level` attribute.
+- CSS class `.progress-bar[data-level="..."]` controls color; JS handles only the attribute and width, not color.
+
+#### VE-3. Product Color Swatches
+- Product color attribute is now displayed as a visual 20x20px color square with rounded corners instead of text.
+- Hover title shows the hex color code.
+- Used in Products table and Product detail view.
+
+#### VE-4. Country Flag Emojis
+- Store country codes (2 letters) are now prefixed with corresponding flag emojis (e.g., 🇪🇸 ES, 🇬🇧 GB).
+- Flag generation uses JS function `countryCodeToFlag(code)` which converts codes to regional indicator Unicode symbols.
+- Applied in Stores table and Stores Map hover card.
+
+#### VE-5. Employee Category Icons (Font Awesome)
+- Employee categories are displayed as Font Awesome icons with text labels:
+  - Manager → fa-user-tie
+  - Cashier → fa-cash-register
+  - Warehouse → fa-warehouse
+- Icons are rendered in the Employees table category column.
+
+#### VE-6. Employee Skills Tooltips (Font Awesome + CSS)
+- Employee skills are displayed as Font Awesome icons with CSS-based :hover tooltips:
+  - MachineryDriving → fa-truck
+  - WritingReports → fa-file-alt
+  - CustomerRelationships → fa-handshake
+- Tooltip text appears on hover via CSS `::after` pseudo-element using `data-tooltip` attribute.
+- Used in Employees table skills column.
+
+#### VE-7. Price Change Propagation (Socket.IO)
+- All price-displaying elements are tagged with `data-product-id` and `data-field="price"` attributes.
+- Socket.IO `price_change` event handler queries all price elements for a product ID and updates them without page reload.
+- Updated prices trigger a 0.8s CSS animation: yellow flash to transparent (attention-drawing effect).
+- Works across Products table, Store detail inventory, and Product detail view.
+
+#### VE-8. Form Input Type Audit (HTML5 Validation)
+- Product color field: `type="color"` (native color picker UI).
+- Employee dateOfContract: `type="date"` (native date picker).
+- Employee category: `<select>` with predefined options (Manager, Cashier, Warehouse).
+- Employee skills: `<select multiple>` with predefined options (MachineryDriving, WritingReports, CustomerRelationships).
+- Store capacity: `type="number" min="0"` (numeric input with validation).
+- Email fields: `type="email"` (browser validation).
+- Password fields: `type="password"` (masked input).
+- All mandatory fields use `required` attribute.
+
+
 ## 5. Non-Functional Requirements
 
 ## 5.1 Usability and UX
