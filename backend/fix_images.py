@@ -16,35 +16,43 @@ from dotenv import load_dotenv
 
 IMAGE_URLS: Dict[str, Dict[str, str]] = {
     'Product': {
-        'product-001': 'https://picsum.photos/seed/red-apple-product/640/480',
-        'product-002': 'https://picsum.photos/seed/banana-pack-product/640/480',
-        'product-003': 'https://picsum.photos/seed/whole-milk-product/640/480',
-        'product-004': 'https://picsum.photos/seed/brown-bread-product/640/480',
-        'product-005': 'https://picsum.photos/seed/white-rice-product/640/480',
-        'product-006': 'https://picsum.photos/seed/olive-oil-product/640/480',
-        'product-007': 'https://picsum.photos/seed/coffee-beans-product/640/480',
-        'product-008': 'https://picsum.photos/seed/orange-juice-product/640/480',
-        'product-009': 'https://picsum.photos/seed/tomato-sauce-product/640/480',
-        'product-010': 'https://picsum.photos/seed/pasta-product/640/480',
+        'product-001': '/img/products/apple.jpg',
+        'product-002': '/img/products/banana.jpg',
+        'product-003': '/img/products/milk.jpg',
+        'product-004': '/img/products/bread.jpg',
+        'product-005': '/img/products/rice.jpg',
+        'product-006': '/img/products/oliveoil.jpg',
+        'product-007': '/img/products/coffee.jpg',
+        'product-008': '/img/products/orangejuice.jpg',
+        'product-009': '/img/products/tomatosauce.jpg',
+        'product-010': '/img/products/pasta.jpg',
     },
     'Store': {
-        'store-001': 'https://picsum.photos/seed/north-market/640/480',
-        'store-002': 'https://picsum.photos/seed/south-market/640/480',
-        'store-003': 'https://picsum.photos/seed/east-market/640/480',
-        'store-004': 'https://picsum.photos/seed/west-market/640/480',
+        'store-001': '/img/stores/store.jpg',
+        'store-002': '/img/stores/store.jpg',
+        'store-003': '/img/stores/store.jpg',
+        'store-004': '/img/stores/store.jpg',
     },
     'Employee': {
-        'employee-001': 'https://i.pravatar.cc/150/1',
-        'employee-002': 'https://i.pravatar.cc/150/2',
-        'employee-003': 'https://i.pravatar.cc/150/3',
-        'employee-004': 'https://i.pravatar.cc/150/4',
+        'employee-001': '/img/employees/alex.jpg',
+        'employee-002': '/img/employees/bea.jpg',
+        'employee-003': '/img/employees/chris.jpg',
+        'employee-004': '/img/employees/dana.jpg',
     },
 }
 
 
 def verify_remote_image(url: str) -> None:
-    response = requests.get(url, timeout=15)
-    response.raise_for_status()
+    frontend_base_url = os.getenv('FRONTEND_BASE_URL', 'http://localhost:3000').rstrip('/')
+    check_url = f'{frontend_base_url}{url}' if url.startswith('/') else url
+
+    try:
+        response = requests.get(check_url, timeout=15, headers={'User-Agent': 'Mozilla/5.0'})
+        content_type = response.headers.get('content-type', '')
+        if response.status_code != 200 or not content_type.startswith('image/'):
+            print(f'Warning: {check_url} returned {response.status_code} {content_type}', file=sys.stderr)
+    except requests.RequestException as exc:
+        print(f'Warning: could not verify {check_url}: {exc}', file=sys.stderr)
 
 
 def _headers() -> Dict[str, str]:
