@@ -31,3 +31,4 @@ backend/*.log
 # Dependencies
 node_modules/
 backend/node_modules/
+frontend/img/
