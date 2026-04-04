@@ -83,11 +83,21 @@ The following Store attributes are externally provided through Orion context pro
 - `relativeHumidity`
 - `tweets`
 
-## 4. Final Sync Statement
+## 4. Shelf Operations
 
-This file is synchronized with the exact Mermaid definition currently rendered in the Home view of the frontend.
+**Shelf CRUD Operations:**
+- **Create:** POST /api/shelves with name, maxCapacity, refStore
+- **Read:** GET /api/shelves or GET /api/shelves/{shelf_id}
+- **Update:** PATCH /api/shelves/{shelf_id} with new name and/or maxCapacity values
+- **Delete:** DELETE /api/shelves/{shelf_id}
 
-## 5. Runtime Note
+The Update (PATCH) operation supports editing shelf name and maximum capacity, enabling users to maintain shelf configuration directly from the Store Detail view.
+
+## 5. Final Sync Statement
+
+This file is synchronized with the exact Mermaid definition currently rendered in the Home view of the frontend and reflects all implemented CRUD operations including shelf updates (PR #55).
+
+## 6. Runtime Note
 
 The frontend networking fix for Docker deployment only changes how the UI reaches the backend and Socket.IO endpoint. It does not alter the entity schema, attributes, or relationships defined above.
 

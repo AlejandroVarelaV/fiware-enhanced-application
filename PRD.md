@@ -29,7 +29,7 @@ Each requirement from the assignment and issue chain is marked with final implem
 1. ✅ Done - CRUD for Product, Store, Employee, Shelf, InventoryItem is implemented in backend routes/services and wired in frontend views.
 2. ✅ Done - List views include row-level edit/delete actions and entity-specific fields (products, stores, employees).
 3. ✅ Done - Product Detail view groups inventory by Store and Shelf, includes per-store add-to-shelf flow with shelf eligibility filtering.
-4. 🟡 Partial - Store Detail includes grouped inventory, add shelf, add inventory item, buy action, weather, tweets, notifications, and 3D tour; explicit Edit Shelf action in each shelf header is not implemented.
+4. ✅ Done - Store Detail includes grouped inventory, add shelf, edit shelf, add inventory item, buy action, weather, tweets, notifications, and 3D tour with explicit Edit Shelf action in each shelf header (PR #55).
 5. ✅ Done - Home view renders Mermaid entity model diagram for Store, Employee, Product, Shelf, InventoryItem.
 6. ✅ Done - Sticky navigation includes Home, Products, Stores, Employees, Stores Map with active section highlight.
 7. ✅ Done - Stores Map is implemented with Leaflet markers, hover card, and click-through to store detail context.
@@ -82,8 +82,7 @@ Each requirement from the assignment and issue chain is marked with final implem
 ## 4. Known Gaps / Partial Items
 
 1. Dedicated backend `price_change` Socket.IO emission is not implemented (frontend listener exists).
-2. Store Detail does not provide explicit shelf edit action in shelf header.
-3. Some deep validation constraints are not enforced end-to-end (for example strict color format and strict 2-char country code enforcement in all flows).
+2. Some deep validation constraints are not enforced end-to-end (for example strict color format and strict 2-char country code enforcement in all flows).
 
 ## 5. Acceptance Summary
 

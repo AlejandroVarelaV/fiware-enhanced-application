@@ -50,7 +50,7 @@ Frontend nginx also proxies `/api/` and `/socket.io/` requests to the backend co
 | POST | /api/shelves | Create Shelf |
 | GET | /api/shelves | List Shelves |
 | GET | /api/shelves/{shelf_id} | Get Shelf by id |
-| PATCH | /api/shelves/{shelf_id} | Update Shelf |
+| PATCH | /api/shelves/{shelf_id} | Update Shelf (name, maxCapacity) |
 | DELETE | /api/shelves/{shelf_id} | Delete Shelf |
 | POST | /api/inventory-items | Create InventoryItem |
 | GET | /api/inventory-items | List InventoryItems |
@@ -62,7 +62,19 @@ Frontend nginx also proxies `/api/` and `/socket.io/` requests to the backend co
 | GET | /api/registrations | Proxy Orion registrations list |
 | GET | /api/health | Backend and Orion connectivity health check |
 
-## 4. Context Provider Registrations
+## 4. Frontend UI Features
+
+**Store Detail Enhancements:**
+- Shelf headers display name, product count, and editable controls
+- Edit Shelf button allows users to update shelf name and maxCapacity via PATCH /api/shelves/{shelf_id}
+- Add Shelf button creates new shelves
+- Add Inventory Item allows product placement on shelves
+- Buy flow decrements shelf and stock counts
+- Real-time notifications for subscription events
+- Weather data and tweets display
+- 360-degree virtual store tour
+
+## 5. Context Provider Registrations
 
 Registered at startup from backend service layer:
 
@@ -83,7 +95,7 @@ Registered at startup from backend service layer:
 Startup behavior:
 - Registration attempts are isolated; errors are logged and startup continues.
 
-## 5. Subscription Types
+## 6. Subscription Types
 
 Registered at backend startup, deduplicated by description:
 
@@ -100,7 +112,7 @@ Registered at backend startup, deduplicated by description:
 - Notification attrs: `id`, `type`, `stockCount`, `refProduct`, `refShelf`, `refStore`
 - Notification URL: from `ORION_NOTIFICATION_URL`
 
-## 6. Notification and Real-Time Flow
+## 7. Notification and Real-Time Flow
 
 1. Orion detects subscription condition and POSTs to `/api/notifications`.
 2. Flask backend receives payload.
@@ -110,7 +122,7 @@ Registered at backend startup, deduplicated by description:
 Note:
 - Frontend also contains `price_change` listener logic, but backend currently emits `orion_notification` only.
 
-## 7. Key Configuration Inputs
+## 8. Key Configuration Inputs
 
 Backend runtime variables used in code:
 - `FLASK_CONFIG`
@@ -124,7 +136,7 @@ Backend runtime variables used in code:
 - `LOW_STOCK_THRESHOLD`
 - `HEALTH_CHECK_TIMEOUT`
 
-## 8. Architectural Conclusion
+## 9. Architectural Conclusion
 
 The final architecture is fully aligned with the implemented repository: Orion-centered context management, startup registrations/subscriptions, callback ingestion, and Socket.IO real-time propagation to the static frontend.
 
