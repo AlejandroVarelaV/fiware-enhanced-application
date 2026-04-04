@@ -404,6 +404,10 @@ td {
   text-align: left;
 }
 
+td > button + button {
+  margin-left: 6px;
+}
+
 th {
   background: rgba(0, 0, 0, 0.03);
 }
@@ -531,6 +535,10 @@ select {
 }
 
 .employee-photo img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 50%;
   transition: transform 0.4s ease;
   display: block;
 }

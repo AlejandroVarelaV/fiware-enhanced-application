@@ -36,23 +36,23 @@ def seed_data(app=None):
             return
 
         products_data = [
-            {'id': 'product-001', 'name': 'Red Apple', 'image': 'https://picsum.photos/seed/red-apple-product/640/480', 'size': '1kg', 'price': 2.5, 'color': '#D12A2A'},
-            {'id': 'product-002', 'name': 'Banana Pack', 'image': 'https://picsum.photos/seed/banana-pack-product/640/480', 'size': '1kg', 'price': 2.1, 'color': '#F2D22E'},
-            {'id': 'product-003', 'name': 'Whole Milk', 'image': 'https://picsum.photos/seed/whole-milk-product/640/480', 'size': '1L', 'price': 1.6, 'color': '#F4F4F4'},
-            {'id': 'product-004', 'name': 'Brown Bread', 'image': 'https://picsum.photos/seed/brown-bread-product/640/480', 'size': '500g', 'price': 1.4, 'color': '#8B5A2B'},
-            {'id': 'product-005', 'name': 'White Rice', 'image': 'https://picsum.photos/seed/white-rice-product/640/480', 'size': '1kg', 'price': 2.9, 'color': '#EFEDE7'},
-            {'id': 'product-006', 'name': 'Olive Oil', 'image': 'https://picsum.photos/seed/olive-oil-product/640/480', 'size': '1L', 'price': 5.8, 'color': '#B8A22A'},
-            {'id': 'product-007', 'name': 'Coffee Beans', 'image': 'https://picsum.photos/seed/coffee-beans-product/640/480', 'size': '500g', 'price': 7.2, 'color': '#4E342E'},
-            {'id': 'product-008', 'name': 'Orange Juice', 'image': 'https://picsum.photos/seed/orange-juice-product/640/480', 'size': '1L', 'price': 2.7, 'color': '#F08C00'},
-            {'id': 'product-009', 'name': 'Tomato Sauce', 'image': 'https://picsum.photos/seed/tomato-sauce-product/640/480', 'size': '350g', 'price': 1.9, 'color': '#C62828'},
-            {'id': 'product-010', 'name': 'Pasta', 'image': 'https://picsum.photos/seed/pasta-product/640/480', 'size': '500g', 'price': 1.3, 'color': '#E9D8A6'},
+            {'id': 'product-001', 'name': 'Red Apple', 'image': '/img/products/apple.jpg', 'size': '1kg', 'price': 2.5, 'color': '#D12A2A'},
+            {'id': 'product-002', 'name': 'Banana Pack', 'image': '/img/products/banana.jpg', 'size': '1kg', 'price': 2.1, 'color': '#F2D22E'},
+            {'id': 'product-003', 'name': 'Whole Milk', 'image': '/img/products/milk.jpg', 'size': '1L', 'price': 1.6, 'color': '#F4F4F4'},
+            {'id': 'product-004', 'name': 'Brown Bread', 'image': '/img/products/bread.jpg', 'size': '500g', 'price': 1.4, 'color': '#8B5A2B'},
+            {'id': 'product-005', 'name': 'White Rice', 'image': '/img/products/rice.jpg', 'size': '1kg', 'price': 2.9, 'color': '#EFEDE7'},
+            {'id': 'product-006', 'name': 'Olive Oil', 'image': '/img/products/oliveoil.jpg', 'size': '1L', 'price': 5.8, 'color': '#B8A22A'},
+            {'id': 'product-007', 'name': 'Coffee Beans', 'image': '/img/products/coffee.jpg', 'size': '500g', 'price': 7.2, 'color': '#4E342E'},
+            {'id': 'product-008', 'name': 'Orange Juice', 'image': '/img/products/orangejuice.jpg', 'size': '1L', 'price': 2.7, 'color': '#F08C00'},
+            {'id': 'product-009', 'name': 'Tomato Sauce', 'image': '/img/products/tomatosauce.jpg', 'size': '350g', 'price': 1.9, 'color': '#C62828'},
+            {'id': 'product-010', 'name': 'Pasta', 'image': '/img/products/pasta.jpg', 'size': '500g', 'price': 1.3, 'color': '#E9D8A6'},
         ]
 
         stores_data = [
             {
                 'id': 'store-001',
-                'name': 'North Market',
-                'image': 'https://picsum.photos/seed/north-market/640/480',
+                'name': 'Old Trafford Market',
+                'image': '/img/stores/store.jpg',
                 'address': {'streetAddress': '1 North Ave', 'addressLocality': 'Springfield'},
                 'location': {'type': 'Point', 'coordinates': [-3.7038, 40.4168]},
                 'url': 'https://north.example.com',
@@ -60,14 +60,14 @@ def seed_data(app=None):
                 'countryCode': 'ES',
                 'capacity': 1200,
                 'description': 'Main northern store',
-                'temperature': {'type': 'Float', 'value': 21.0},
-                'relativeHumidity': {'type': 'Float', 'value': 0.68},
+                'temperature': {'type': 'Float', 'value': 19.5},
+                'relativeHumidity': {'type': 'Float', 'value': 0.62},
                 'tweets': {'type': 'StructuredValue', 'value': []},
             },
             {
                 'id': 'store-002',
-                'name': 'South Market',
-                'image': 'https://picsum.photos/seed/south-market/640/480',
+                'name': 'Salford Quays Store',
+                'image': '/img/stores/store.jpg',
                 'address': {'streetAddress': '25 South Blvd', 'addressLocality': 'Springfield'},
                 'location': {'type': 'Point', 'coordinates': [-3.6938, 40.4068]},
                 'url': 'https://south.example.com',
@@ -75,14 +75,14 @@ def seed_data(app=None):
                 'countryCode': 'ES',
                 'capacity': 1100,
                 'description': 'Main southern store',
-                'temperature': {'type': 'Float', 'value': 21.0},
-                'relativeHumidity': {'type': 'Float', 'value': 0.68},
+                'temperature': {'type': 'Float', 'value': 22.0},
+                'relativeHumidity': {'type': 'Float', 'value': 0.71},
                 'tweets': {'type': 'StructuredValue', 'value': []},
             },
             {
                 'id': 'store-003',
-                'name': 'East Market',
-                'image': 'https://picsum.photos/seed/east-market/640/480',
+                'name': 'Stretford Mall',
+                'image': '/img/stores/store.jpg',
                 'address': {'streetAddress': '14 East St', 'addressLocality': 'Springfield'},
                 'location': {'type': 'Point', 'coordinates': [-3.6838, 40.4168]},
                 'url': 'https://east.example.com',
@@ -90,14 +90,14 @@ def seed_data(app=None):
                 'countryCode': 'ES',
                 'capacity': 1300,
                 'description': 'Main eastern store',
-                'temperature': {'type': 'Float', 'value': 21.0},
-                'relativeHumidity': {'type': 'Float', 'value': 0.68},
+                'temperature': {'type': 'Float', 'value': 18.0},
+                'relativeHumidity': {'type': 'Float', 'value': 0.58},
                 'tweets': {'type': 'StructuredValue', 'value': []},
             },
             {
                 'id': 'store-004',
-                'name': 'West Market',
-                'image': 'https://picsum.photos/seed/west-market/640/480',
+                'name': 'Deansgate Express',
+                'image': '/img/stores/store.jpg',
                 'address': {'streetAddress': '50 West Rd', 'addressLocality': 'Springfield'},
                 'location': {'type': 'Point', 'coordinates': [-3.7138, 40.4168]},
                 'url': 'https://west.example.com',
@@ -105,8 +105,8 @@ def seed_data(app=None):
                 'countryCode': 'ES',
                 'capacity': 1250,
                 'description': 'Main western store',
-                'temperature': {'type': 'Float', 'value': 21.0},
-                'relativeHumidity': {'type': 'Float', 'value': 0.68},
+                'temperature': {'type': 'Float', 'value': 24.5},
+                'relativeHumidity': {'type': 'Float', 'value': 0.79},
                 'tweets': {'type': 'StructuredValue', 'value': []},
             },
         ]
@@ -115,7 +115,7 @@ def seed_data(app=None):
             {
                 'id': 'employee-001',
                 'name': 'Alex Martin',
-                'image': 'https://i.pravatar.cc/150/1',
+                'image': '/img/employees/alex.jpg',
                 'category': 'Manager',
                 'email': 'alex.martin@example.com',
                 'dateOfContract': '2024-01-15T09:00:00Z',
@@ -127,7 +127,7 @@ def seed_data(app=None):
             {
                 'id': 'employee-002',
                 'name': 'Bea Lopez',
-                'image': 'https://i.pravatar.cc/150/2',
+                'image': '/img/employees/bea.jpg',
                 'category': 'Operator',
                 'email': 'bea.lopez@example.com',
                 'dateOfContract': '2024-02-20T09:00:00Z',
@@ -139,7 +139,7 @@ def seed_data(app=None):
             {
                 'id': 'employee-003',
                 'name': 'Chris Vega',
-                'image': 'https://i.pravatar.cc/150/3',
+                'image': '/img/employees/chris.jpg',
                 'category': 'Supervisor',
                 'email': 'chris.vega@example.com',
                 'dateOfContract': '2024-03-10T09:00:00Z',
@@ -151,7 +151,7 @@ def seed_data(app=None):
             {
                 'id': 'employee-004',
                 'name': 'Dana Ruiz',
-                'image': 'https://i.pravatar.cc/150/4',
+                'image': '/img/employees/dana.jpg',
                 'category': 'Clerk',
                 'email': 'dana.ruiz@example.com',
                 'dateOfContract': '2024-04-05T09:00:00Z',
@@ -178,13 +178,21 @@ def seed_data(app=None):
         created_employees = [employee_service.create(employee) for employee in employees_data]
 
         shelves_by_store = {}
+        shelf_names_by_store = {
+            'store-001': ['Fresh Produce A', 'Dairy & Refrigerated', 'Bakery & Bread', 'Beverages'],
+            'store-002': ['Fresh Produce B', 'Dairy & Refrigerated', 'Bakery & Bread', 'Beverages'],
+            'store-003': ['Fresh Produce C', 'Dairy & Refrigerated', 'Bakery & Bread', 'Beverages'],
+            'store-004': ['Fresh Produce D', 'Dairy & Refrigerated', 'Bakery & Bread', 'Beverages'],
+        }
         for store in created_stores:
             store_id = store['id']
             store_shelves = []
             for shelf_index in range(1, 5):
+                shelf_names = shelf_names_by_store.get(store_id, [])
+                shelf_name = shelf_names[shelf_index - 1] if len(shelf_names) >= shelf_index else f'Shelf {shelf_index}'
                 shelf_payload = {
                     'id': f'{store_id}-shelf-{shelf_index:02d}',
-                    'name': f'Shelf {shelf_index}',
+                    'name': shelf_name,
                     'maxCapacity': 200,
                     'refStore': store_id,
                 }
