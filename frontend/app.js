@@ -908,6 +908,7 @@ function initStoreDetailMap(store) {
     : null;
 
   if (!coordinates || coordinates.length < 2) {
+    console.warn('Store detail map skipped: missing coordinates', store);
     return;
   }
 
@@ -915,6 +916,7 @@ function initStoreDetailMap(store) {
   const latitude = Number(coordinates[1]);
 
   if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) {
+    console.warn('Store detail map skipped: invalid numeric coordinates', coordinates);
     return;
   }
 
@@ -932,7 +934,7 @@ function initStoreDetailMap(store) {
     if (storeDetailMapInstance) {
       storeDetailMapInstance.invalidateSize();
     }
-  }, 0);
+  }, 100);
 }
 
 function initStoresMap(stores) {
