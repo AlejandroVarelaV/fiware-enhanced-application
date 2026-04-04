@@ -376,6 +376,20 @@ button:hover {
   cursor: not-allowed;
 }
 
+.add-to-shelf-panel .shelf-product-select {
+  min-width: 220px;
+  max-width: 300px;
+}
+
+.add-to-shelf-panel .confirm-add-product-btn {
+  padding: 6px 10px;
+}
+
+.add-to-shelf-panel .confirm-add-product-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
