@@ -123,6 +123,9 @@ const translations = {
     'storeDetail.metrics.productsCount': '{count} product(s)',
     'storeDetail.empty.noInventoryOnShelf': 'No inventory items on this shelf.',
     'storeDetail.buy': 'Buy product',
+    'storeDetail.addProductToShelf': 'Add product',
+    'storeDetail.selectProductToAdd': 'Select a product',
+    'storeDetail.noAvailableProductsForShelf': 'No products available for this shelf.',
     'storeDetail.meta.price': 'price',
     'storeDetail.meta.size': 'size',
     'storeDetail.meta.color': 'color',
@@ -207,6 +210,7 @@ const translations = {
     'status.maxCapacityPositiveInt': 'maxCapacity must be a positive integer.',
     'status.shelfCreated': 'Shelf created.',
     'status.shelfUpdated': 'Shelf updated.',
+    'status.productAddedToShelf': 'Product added to shelf.',
     'status.createShelfFirst': 'Create a shelf before adding inventory items.',
     'status.noProductsAvailableCreateFirst': 'No products available. Create a product first.',
     'status.invalidShelfId': 'Invalid shelf id.',
@@ -328,6 +332,9 @@ const translations = {
     'storeDetail.metrics.productsCount': '{count} producto(s)',
     'storeDetail.empty.noInventoryOnShelf': 'No hay items de inventario en esta estanteria.',
     'storeDetail.buy': 'Comprar producto',
+    'storeDetail.addProductToShelf': 'Anadir producto',
+    'storeDetail.selectProductToAdd': 'Selecciona un producto',
+    'storeDetail.noAvailableProductsForShelf': 'No hay productos disponibles para esta estanteria.',
     'storeDetail.meta.price': 'precio',
     'storeDetail.meta.size': 'talla',
     'storeDetail.meta.color': 'color',
@@ -412,6 +419,7 @@ const translations = {
     'status.maxCapacityPositiveInt': 'maxCapacity debe ser un entero positivo.',
     'status.shelfCreated': 'Estanteria creada.',
     'status.shelfUpdated': 'Estanteria actualizada.',
+    'status.productAddedToShelf': 'Producto anadido a la estanteria.',
     'status.createShelfFirst': 'Crea una estanteria antes de anadir inventario.',
     'status.noProductsAvailableCreateFirst': 'No hay productos disponibles. Crea primero un producto.',
     'status.invalidShelfId': 'ID de estanteria invalido.',
@@ -2320,6 +2328,38 @@ function renderStoreShelves(shelves, inventoryItems, productMap) {
     editShelfButton.addEventListener('click', () => editShelf(shelf.id, shelf.name, shelf.maxCapacity));
     shelfHeader.appendChild(editShelfButton);
 
+    const addProductPanel = document.createElement('div');
+    addProductPanel.className = 'add-to-shelf-panel';
+
+    const shelfProductSelect = document.createElement('select');
+    shelfProductSelect.className = 'shelf-product-select';
+    shelfProductSelect.setAttribute('aria-label', t('storeDetail.selectProductToAdd'));
+
+    const confirmAddProductButton = document.createElement('button');
+    confirmAddProductButton.type = 'button';
+    confirmAddProductButton.className = 'confirm-add-product-btn';
+    confirmAddProductButton.textContent = t('storeDetail.addProductToShelf');
+    confirmAddProductButton.disabled = true;
+
+    shelfProductSelect.addEventListener('change', () => {
+      confirmAddProductButton.disabled = !shelfProductSelect.value;
+    });
+
+    confirmAddProductButton.addEventListener('click', () => {
+      const selectedProductId = shelfProductSelect.value;
+      if (!selectedProductId) {
+        return;
+      }
+
+      addProductToShelf(selectedProductId, shelf.id, selectedStoreId);
+    });
+
+    addProductPanel.appendChild(shelfProductSelect);
+    addProductPanel.appendChild(confirmAddProductButton);
+    shelfHeader.appendChild(addProductPanel);
+
+    void loadProductsForShelf(shelf.id, inventoryItems, shelfProductSelect, confirmAddProductButton);
+
     const capacityRow = document.createElement('div');
     capacityRow.className = 'capacity-row';
 
@@ -2401,6 +2441,62 @@ function renderStoreShelves(shelves, inventoryItems, productMap) {
     shelfCard.appendChild(inventoryGrid);
     storeShelvesContainer.appendChild(shelfCard);
   });
+}
+
+async function loadProductsForShelf(shelfId, allInventoryItems, selectElement, confirmButton) {
+  if (!selectElement || !confirmButton) {
+    return;
+  }
+
+  const shelfProductIds = new Set(
+    allInventoryItems
+      .filter((item) => item.refShelf === shelfId)
+      .map((item) => item.refProduct)
+      .filter(Boolean),
+  );
+
+  let availableProducts = Array.isArray(productsCache) && productsCache.length > 0 ? productsCache : [];
+  if (availableProducts.length === 0) {
+    try {
+      const response = await fetch(`${API_BASE}/api/products`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `Load products failed (${response.status})`);
+      }
+
+      availableProducts = await response.json();
+    } catch (error) {
+      availableProducts = [];
+    }
+  }
+
+  const productsToShow = availableProducts.filter((product) => !shelfProductIds.has(product.id));
+
+  while (selectElement.firstChild) {
+    selectElement.removeChild(selectElement.firstChild);
+  }
+
+  const defaultOption = document.createElement('option');
+  defaultOption.value = '';
+  defaultOption.textContent = productsToShow.length > 0
+    ? t('storeDetail.selectProductToAdd')
+    : t('storeDetail.noAvailableProductsForShelf');
+  selectElement.appendChild(defaultOption);
+
+  productsToShow.forEach((product) => {
+    const option = document.createElement('option');
+    option.value = product.id;
+    option.textContent = product.name || product.id;
+    selectElement.appendChild(option);
+  });
+
+  const hasProducts = productsToShow.length > 0;
+  selectElement.disabled = !hasProducts;
+  confirmButton.disabled = !hasProducts;
+
+  if (hasProducts) {
+    selectElement.value = '';
+  }
 }
 
 async function buyOneProduct(inventoryItem) {
@@ -2507,6 +2603,37 @@ async function editShelf(shelfId, currentName, currentMaxCapacity) {
 
     await loadStoreDetailData(selectedStoreId);
     setStoreDetailFeedback(t('status.shelfUpdated'));
+  } catch (error) {
+    setStoreDetailFeedback(error.message, true);
+  }
+}
+
+async function addProductToShelf(productId, shelfId, storeId) {
+  if (!storeId) {
+    setStoreDetailFeedback(t('status.selectStoreFirst'), true);
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}/api/inventory-items`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        shelfCount: 1,
+        stockCount: 1,
+        refStore: storeId,
+        refShelf: shelfId,
+        refProduct: productId,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || `Create inventory item failed (${response.status})`);
+    }
+
+    await loadStoreDetailData(storeId);
+    setStoreDetailFeedback(t('status.productAddedToShelf'));
   } catch (error) {
     setStoreDetailFeedback(error.message, true);
   }
