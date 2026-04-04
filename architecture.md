@@ -66,6 +66,7 @@ Frontend nginx also proxies `/api/` and `/socket.io/` requests to the backend co
 
 **Store Detail Enhancements:**
 - Shelf headers display name, product count, edit controls, and a dynamic product select for shelf-scoped inventory creation
+- A Leaflet map renders the selected Store location from `Store.location.coordinates` inside the Store Detail section
 - Edit Shelf button allows users to update shelf name and maxCapacity via PATCH /api/shelves/{shelf_id}
 - Add product action creates an InventoryItem directly from the shelf header after filtering out products already on that shelf
 - Add Shelf button creates new shelves
