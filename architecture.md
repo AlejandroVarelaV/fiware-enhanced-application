@@ -65,8 +65,9 @@ Frontend nginx also proxies `/api/` and `/socket.io/` requests to the backend co
 ## 4. Frontend UI Features
 
 **Store Detail Enhancements:**
-- Shelf headers display name, product count, and editable controls
+- Shelf headers display name, product count, edit controls, and a dynamic product select for shelf-scoped inventory creation
 - Edit Shelf button allows users to update shelf name and maxCapacity via PATCH /api/shelves/{shelf_id}
+- Add product action creates an InventoryItem directly from the shelf header after filtering out products already on that shelf
 - Add Shelf button creates new shelves
 - Add Inventory Item allows product placement on shelves
 - Buy flow decrements shelf and stock counts
