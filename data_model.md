@@ -92,6 +92,7 @@ The following Store attributes are externally provided through Orion context pro
 - **Delete:** DELETE /api/shelves/{shelf_id}
 
 The Update (PATCH) operation supports editing shelf name and maximum capacity, enabling users to maintain shelf configuration directly from the Store Detail view.
+Store Detail also exposes a shelf-scoped add-product control that creates new InventoryItem records by selecting from products not already present on the shelf.
 
 ## 5. Final Sync Statement
 
