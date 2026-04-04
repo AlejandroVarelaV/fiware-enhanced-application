@@ -590,6 +590,7 @@ const tourInfoShelfCount = document.getElementById('tour-info-shelf-count');
 const tourInfoStockCount = document.getElementById('tour-info-stock-count');
 const storeShelvesContainer = document.getElementById('store-shelves-container');
 const storePhotoImage = document.getElementById('store-photo-image');
+const storeDetailMapElement = document.getElementById('store-detail-map');
 const storeTempIcon = document.getElementById('store-temp-icon');
 const storeTempValue = document.getElementById('store-temp-value');
 const storeHumidityIcon = document.getElementById('store-humidity-icon');
@@ -668,6 +669,7 @@ let selectedStoreId = '';
 let selectedProductId = '';
 let storesMapInstance = null;
 let storesMapMarkersLayer = null;
+let storeDetailMapInstance = null;
 let pendingStoreIdFromMap = '';
 let hoveredStoreOnMap = null;
 
@@ -885,6 +887,54 @@ function cleanupStoresMap() {
   storesMapMarkersLayer = null;
 }
 
+function cleanupStoreDetailMap() {
+  if (storeDetailMapInstance) {
+    storeDetailMapInstance.remove();
+  }
+
+  storeDetailMapInstance = null;
+}
+
+function initStoreDetailMap(store) {
+  if (!storeDetailMapElement || typeof window.L === 'undefined') {
+    cleanupStoreDetailMap();
+    return;
+  }
+
+  cleanupStoreDetailMap();
+
+  const coordinates = store && store.location && Array.isArray(store.location.coordinates)
+    ? store.location.coordinates
+    : null;
+
+  if (!coordinates || coordinates.length < 2) {
+    return;
+  }
+
+  const longitude = Number(coordinates[0]);
+  const latitude = Number(coordinates[1]);
+
+  if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) {
+    return;
+  }
+
+  storeDetailMapInstance = window.L.map(storeDetailMapElement).setView([latitude, longitude], 15);
+
+  window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors',
+  }).addTo(storeDetailMapInstance);
+
+  const marker = window.L.marker([latitude, longitude]).addTo(storeDetailMapInstance);
+  marker.bindPopup(store && store.name ? store.name : t('storeDetail.store.unnamed'));
+
+  window.setTimeout(() => {
+    if (storeDetailMapInstance) {
+      storeDetailMapInstance.invalidateSize();
+    }
+  }, 0);
+}
+
 function initStoresMap(stores) {
   if (!leafletMapElement || !storesMapView || !Array.isArray(stores)) {
     return;
@@ -952,6 +1002,7 @@ function initStoresMap(stores) {
 async function showView(viewId) {
   if (viewId !== 'stores-view') {
     cleanupStoreTour();
+    cleanupStoreDetailMap();
     if (storeTourContainer) {
       storeTourContainer.classList.add('tour-hidden');
     }
@@ -970,6 +1021,7 @@ async function showView(viewId) {
   });
 
   navLinks.forEach((link) => {
+    initStoreDetailMap(getSelectedStore());
     if (link.dataset.view === viewId) {
       link.classList.add('active');
     } else {
@@ -1787,6 +1839,7 @@ async function loadStoreDetailData(preferredStoreId = '') {
     renderStoreSelector('');
     renderStoreShelves([], [], new Map());
     updateStoreDetailPanels(null);
+    cleanupStoreDetailMap();
     setStoreDetailFeedback(t('storeDetail.empty.noStoresForDetail'));
     return;
   }
@@ -1834,6 +1887,7 @@ async function loadStoreDetailData(preferredStoreId = '') {
   } catch (error) {
     renderStoreShelves([], [], new Map());
     updateStoreDetailPanels(null);
+    cleanupStoreDetailMap();
     cleanupStoreTour();
     setStoreDetailFeedback(error.message, true);
   }
