@@ -103,3 +103,4 @@ This file is synchronized with the exact Mermaid definition currently rendered i
 The frontend networking fix for Docker deployment only changes how the UI reaches the backend and Socket.IO endpoint. It does not alter the entity schema, attributes, or relationships defined above.
 
 The frontend parser repair in frontend/app.js also does not change this schema; it only restores valid JavaScript execution for the existing views.
+The Store Detail Leaflet map is a presentation-layer feature that uses the existing `Store.location` GeoJSON point and does not add new model fields.

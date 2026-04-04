@@ -29,7 +29,7 @@ Each requirement from the assignment and issue chain is marked with final implem
 1. ✅ Done - CRUD for Product, Store, Employee, Shelf, InventoryItem is implemented in backend routes/services and wired in frontend views.
 2. ✅ Done - List views include row-level edit/delete actions and entity-specific fields (products, stores, employees).
 3. ✅ Done - Product Detail view groups inventory by Store and Shelf, includes per-store add-to-shelf flow with shelf eligibility filtering.
-4. ✅ Done - Store Detail includes grouped inventory, add shelf, edit shelf, dynamic per-shelf product select for add inventory item, buy action, weather, tweets, notifications, and 3D tour with explicit Edit Shelf action in each shelf header (PR #55, PR #59).
+4. ✅ Done - Store Detail includes grouped inventory, add shelf, edit shelf, Leaflet store location map, dynamic per-shelf product select for add inventory item, buy action, weather, tweets, notifications, and 3D tour with explicit Edit Shelf action in each shelf header (PR #55, PR #59, PR #63).
 5. ✅ Done - Home view renders Mermaid entity model diagram for Store, Employee, Product, Shelf, InventoryItem.
 6. ✅ Done - Sticky navigation includes Home, Products, Stores, Employees, Stores Map with active section highlight.
 7. ✅ Done - Stores Map is implemented with Leaflet markers, hover card, and click-through to store detail context.
@@ -69,7 +69,7 @@ Each requirement from the assignment and issue chain is marked with final implem
 
 ### 3.2 Frontend
 - Views: Home, Products, Product Detail, Stores, Store Detail, Employees, Stores Map.
-- Store detail enhancements: weather badges, tweets list, real-time notifications panel, 3D tour, capacity bars, buy flow, shelf header edit controls, and dynamic per-shelf product select for creating inventory items.
+- Store detail enhancements: weather badges, Leaflet map, tweets list, real-time notifications panel, 3D tour, capacity bars, buy flow, shelf header edit controls, and dynamic per-shelf product select for creating inventory items.
 - Product detail enhancements: grouped inventory and per-store add-to-shelf.
 - Global UX: sticky nav, theme toggle, EN/ES localization.
 - Runtime networking: the frontend resolves the API and Socket.IO base URL from the browser origin by default, and the Dockerized nginx frontend proxies `/api/` and `/socket.io/` to the backend container.
