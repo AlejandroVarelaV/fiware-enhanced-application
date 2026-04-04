@@ -206,6 +206,7 @@ const translations = {
     'status.selectStoreFirst': 'Select a store first.',
     'status.maxCapacityPositiveInt': 'maxCapacity must be a positive integer.',
     'status.shelfCreated': 'Shelf created.',
+    'status.shelfUpdated': 'Shelf updated.',
     'status.createShelfFirst': 'Create a shelf before adding inventory items.',
     'status.noProductsAvailableCreateFirst': 'No products available. Create a product first.',
     'status.invalidShelfId': 'Invalid shelf id.',
@@ -410,6 +411,7 @@ const translations = {
     'status.selectStoreFirst': 'Selecciona primero una tienda.',
     'status.maxCapacityPositiveInt': 'maxCapacity debe ser un entero positivo.',
     'status.shelfCreated': 'Estanteria creada.',
+    'status.shelfUpdated': 'Estanteria actualizada.',
     'status.createShelfFirst': 'Crea una estanteria antes de anadir inventario.',
     'status.noProductsAvailableCreateFirst': 'No hay productos disponibles. Crea primero un producto.',
     'status.invalidShelfId': 'ID de estanteria invalido.',
@@ -2312,6 +2314,12 @@ function renderStoreShelves(shelves, inventoryItems, productMap) {
     shelfHeader.appendChild(shelfTitle);
     shelfHeader.appendChild(shelfMetrics);
 
+    const editShelfButton = document.createElement('button');
+    editShelfButton.type = 'button';
+    editShelfButton.textContent = t('common.edit');
+    editShelfButton.addEventListener('click', () => editShelf(shelf.id, shelf.name, shelf.maxCapacity));
+    shelfHeader.appendChild(editShelfButton);
+
     const capacityRow = document.createElement('div');
     capacityRow.className = 'capacity-row';
 
@@ -2463,6 +2471,42 @@ async function addShelfToCurrentStore() {
 
     await loadStoreDetailData(selectedStoreId);
     setStoreDetailFeedback(t('status.shelfCreated'));
+  } catch (error) {
+    setStoreDetailFeedback(error.message, true);
+  }
+}
+
+async function editShelf(shelfId, currentName, currentMaxCapacity) {
+  const name = window.prompt(t('prompt.shelfName'), currentName);
+  if (!name) {
+    return;
+  }
+
+  const maxCapacityRaw = window.prompt(t('prompt.shelfMaxCapacity'), String(currentMaxCapacity));
+  const maxCapacity = Number(maxCapacityRaw);
+
+  if (!Number.isInteger(maxCapacity) || maxCapacity <= 0) {
+    setStoreDetailFeedback(t('status.maxCapacityPositiveInt'), true);
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}/api/shelves/${shelfId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: name.trim(),
+        maxCapacity,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || `Update shelf failed (${response.status})`);
+    }
+
+    await loadStoreDetailData(selectedStoreId);
+    setStoreDetailFeedback(t('status.shelfUpdated'));
   } catch (error) {
     setStoreDetailFeedback(error.message, true);
   }
