@@ -670,6 +670,7 @@ let selectedProductId = '';
 let storesMapInstance = null;
 let storesMapMarkersLayer = null;
 let storeDetailMapInstance = null;
+let currentSelectedStore = null;
 let pendingStoreIdFromMap = '';
 let hoveredStoreOnMap = null;
 
@@ -1029,7 +1030,6 @@ async function showView(viewId) {
   });
 
   navLinks.forEach((link) => {
-    initStoreDetailMap(getSelectedStore());
     if (link.dataset.view === viewId) {
       link.classList.add('active');
     } else {
@@ -1046,9 +1046,13 @@ async function showView(viewId) {
     pendingStoreIdFromMap = '';
     await loadStores(preferredStoreId);
 
-    if (storeDetailMapInstance) {
-      setTimeout(() => storeDetailMapInstance.invalidateSize(), 500);
-    }
+    setTimeout(() => {
+      if (currentSelectedStore) {
+        initStoreDetailMap(currentSelectedStore);
+      } else if (storeDetailMapInstance) {
+        storeDetailMapInstance.invalidateSize();
+      }
+    }, 300);
   }
 
   if (viewId === 'stores-map-view') {
@@ -1624,6 +1628,7 @@ async function loadStores(preferredStoreId = selectedStoreId) {
     renderStoresTable([]);
     renderStoreSelector('');
     renderStoreShelves([], [], new Map());
+    currentSelectedStore = null;
     setStoreDetailFeedback(t('status.storeDetailUnavailable'), true);
     setStoresFeedback(error.message, true);
   }
@@ -1848,6 +1853,7 @@ function setStoreDetailFeedback(message, isError = false) {
 async function loadStoreDetailData(preferredStoreId = '') {
   if (!Array.isArray(storesCache) || storesCache.length === 0) {
     selectedStoreId = '';
+    currentSelectedStore = null;
     renderStoreSelector('');
     renderStoreShelves([], [], new Map());
     updateStoreDetailPanels(null);
@@ -1882,6 +1888,8 @@ async function loadStoreDetailData(preferredStoreId = '') {
     productsCache = await productsResponse.json();
 
     renderStoreSelector(preferredStoreId);
+    const selectedStore = getSelectedStore();
+    currentSelectedStore = selectedStore;
     updateStoreDetailPanels(getSelectedStore());
     renderCurrentStoreInventory();
     if (storeTourState.active) {
@@ -1901,6 +1909,7 @@ async function loadStoreDetailData(preferredStoreId = '') {
     updateStoreDetailPanels(null);
     cleanupStoreDetailMap();
     cleanupStoreTour();
+    currentSelectedStore = null;
     setStoreDetailFeedback(error.message, true);
   }
 }
@@ -2318,6 +2327,8 @@ function renderStoreSelector(preferredStoreId) {
   }
 
   storeSelector.value = selectedStoreId;
+  const selectedStore = getSelectedStore();
+  currentSelectedStore = selectedStore;
   addShelfButton.disabled = false;
   addInventoryItemButton.disabled = false;
   refreshStoreDetailButton.disabled = false;
@@ -2799,6 +2810,8 @@ async function handleStoreSelectionChange() {
     return;
   }
   selectedStoreId = storeSelector.value;
+  const selectedStore = getSelectedStore();
+  currentSelectedStore = selectedStore;
   updateStoreDetailPanels(getSelectedStore());
   renderCurrentStoreInventory();
   if (storeTourState.active) {
