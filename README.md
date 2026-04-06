@@ -3,6 +3,16 @@
 United Supermarket is a Manchester United themed FIWARE NGSIv2 smart retail application.
 It uses Orion Context Broker, a Flask backend, and a static frontend.
 
+## Quick Start
+
+1. `docker rm -f fiware-orion 2>/dev/null && docker-compose up -d`
+2. Wait 15 seconds for all services to start
+3. `cd backend && source .venv/bin/activate`
+4. `python seed_data.py`
+5. `python fix_images.py`
+6. `python fix_names.py`
+7. Open http://localhost:3000
+
 ## GitHub Repository
 
 https://github.com/AlejandroVarelaV/fiware-enhanced-application

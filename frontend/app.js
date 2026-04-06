@@ -1039,6 +1039,10 @@ async function showView(viewId) {
     const preferredStoreId = pendingStoreIdFromMap || selectedStoreId;
     pendingStoreIdFromMap = '';
     await loadStores(preferredStoreId);
+
+    if (storeDetailMapInstance) {
+      setTimeout(() => storeDetailMapInstance.invalidateSize(), 200);
+    }
   }
 
   if (viewId === 'stores-map-view') {
