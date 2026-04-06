@@ -930,11 +930,17 @@ function initStoreDetailMap(store) {
   const marker = window.L.marker([latitude, longitude]).addTo(storeDetailMapInstance);
   marker.bindPopup(store && store.name ? store.name : t('storeDetail.store.unnamed'));
 
+  window.addEventListener('load', () => {
+    if (storeDetailMapInstance) {
+      storeDetailMapInstance.invalidateSize();
+    }
+  }, { once: true });
+
   window.setTimeout(() => {
     if (storeDetailMapInstance) {
       storeDetailMapInstance.invalidateSize();
     }
-  }, 100);
+  }, 400);
 }
 
 function initStoresMap(stores) {
@@ -1041,7 +1047,7 @@ async function showView(viewId) {
     await loadStores(preferredStoreId);
 
     if (storeDetailMapInstance) {
-      setTimeout(() => storeDetailMapInstance.invalidateSize(), 200);
+      setTimeout(() => storeDetailMapInstance.invalidateSize(), 500);
     }
   }
 
